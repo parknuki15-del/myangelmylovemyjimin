@@ -48,6 +48,17 @@ npx serve .
 bash publish.sh <你的GitHub用户名>
 ```
 
+> **只用一次。** 仓库挂好 remote 之后，以后每次改完内容用日常脚本就行：
+>
+> ```bash
+> bash go-live.sh            # 自检（资源齐不齐 / 关键文件在不在 / GitHub 通不通）→ 提交 → 推送
+> bash go-live.sh --check    # 只自检，什么都不改
+> ```
+>
+> 注意 `assets/promise.mp3` 被 `.gitignore` 排除，所以**线上是没有音乐的** ——
+> 这不是 bug：mp3 拿不到时右下角唱片按钮会自己隐藏，不会留一个点了没反应的死按钮。
+> 想让线上也有音乐，见下面「资源与版权」。
+
 推完之后开 Pages：**Settings → Pages → Source 选 `Deploy from a branch`，
 Branch 选 `main`、目录 `/ (root)`，Save**。
 
