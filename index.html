@@ -1,0 +1,2717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>myangelmylovemyjimin</title>
+<!-- 字体全部自托管在 assets/fonts/，不走 Google Fonts —— 国内不翻墙也能正常显示。
+     想改文案后用 build_fonts.py 重新生成子集即可。 -->
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="preload" as="font" type="font/woff2" href="assets/fonts/zcool-kuaile-400.woff2" crossorigin>
+<style>
+  :root {
+    /* 手账剪贴簿配色（取自「风格参考.jpg」）：
+       奶油纸底 + 巧克力棕 + 雾蓝 + 藕粉，标题墨色也跟着变棕 */
+    --paper: #fdeef1;      /* 用户点名：底色要「这个原来的」淡粉 */
+    --paper-2: #fbe6ec;
+    --cream: #fffdf8;
+    --ink: #5f4234;
+    --ink-soft: #a8866f;
+    --ink-faint: #bda694;
+    --pink: #e6a3b6;
+    --pink-soft: #f7dee4;
+    --pink-deep: #cd8298;
+    --pink-ink: #7d4a3a;
+    --blue: #a6c7dd;
+    --blue-pale: #dbe9f4;
+    --blue-ink: #5c86a6;
+    --brown: #6b4436;
+    --brown-soft: #8d6a58;
+    --line: rgba(107,68,54,.24);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    color: var(--ink);
+    font-family: "ZCOOL KuaiLe", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    /* 做旧奶油纸：底色是淡粉，再叠几块很轻的暖白 / 雾蓝晕染，像纸放久了不均匀 */
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse 62% 52% at 10% 6%, rgba(255,253,248,.45), transparent 72%),
+      radial-gradient(ellipse 54% 46% at 90% 94%, rgba(214,170,146,.075), transparent 74%),
+      radial-gradient(ellipse 48% 42% at 94% 4%, rgba(166,199,221,.10), transparent 72%),
+      radial-gradient(ellipse 50% 44% at 4% 96%, rgba(230,163,182,.10), transparent 74%);
+    background-attachment: fixed;
+  }
+  /* 纸张肌理（很淡，只加一点颗粒感） */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='260' height='260' filter='url(%23n)' opacity='.075'/%3E%3C/svg%3E");
+  }
+  /* 棕色点阵（手账纸上的小圆点） */
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(rgba(200,130,152,.16) 1.9px, transparent 2.4px);
+    background-size: 24px 24px;
+  }
+
+  /* ============ 手账外框：棕底白波点 + 缝线 + 蓝白条纹 + 白色扇贝蕾丝 ============ */
+  .pageframe { position: fixed; inset: 0; z-index: 70; pointer-events: none; --fw: 15px; }
+  .pageframe i {
+    position: absolute;
+    background-color: var(--brown);
+    background-image: radial-gradient(circle, rgba(255,253,248,.9) 1.9px, transparent 2.4px);
+    background-size: 16px 16px;
+    background-position: 8px 8px;
+  }
+  .pageframe .pf-t, .pageframe .pf-b { left: 0; right: 0; height: var(--fw); }
+  .pageframe .pf-t { top: 0; } .pageframe .pf-b { bottom: 0; }
+  .pageframe .pf-l, .pageframe .pf-r { top: 0; bottom: 0; width: var(--fw); }
+  .pageframe .pf-l { left: 0; } .pageframe .pf-r { right: 0; }
+  /* 里面一圈缝线，像缝在布上 */
+  .pageframe::after {
+    content: ""; position: absolute; inset: calc(var(--fw) + 7px);
+    border: 1.5px dashed rgba(107,68,54,.32); border-radius: 3px;
+  }
+  /* 邮票齿孔：沿棕边内侧打一排半圆，露出底纸色 —— 参考封面最标志性的那个毛边 */
+  .pageframe .pf-nt { background-color: transparent; background-image: none; }
+  .pageframe .pf-nt-t {
+    left: var(--fw); right: var(--fw); top: calc(var(--fw) - 6px); height: 12px;
+    background-image: radial-gradient(circle at 50% 0, var(--paper) 6px, transparent 6.7px);
+    background-size: 15px 12px; background-repeat: repeat-x;
+  }
+  .pageframe .pf-nt-b {
+    left: var(--fw); right: var(--fw); bottom: calc(var(--fw) - 6px); height: 12px;
+    background-image: radial-gradient(circle at 50% 100%, var(--paper) 6px, transparent 6.7px);
+    background-size: 15px 12px; background-repeat: repeat-x;
+  }
+  .pageframe .pf-nt-l {
+    top: var(--fw); bottom: 34px; left: calc(var(--fw) - 6px); width: 12px;
+    background-image: radial-gradient(circle at 0 50%, var(--paper) 6px, transparent 6.7px);
+    background-size: 12px 15px; background-repeat: repeat-y;
+  }
+  .pageframe .pf-nt-r {
+    top: var(--fw); bottom: 34px; right: calc(var(--fw) - 6px); width: 12px;
+    background-image: radial-gradient(circle at 100% 50%, var(--paper) 6px, transparent 6.7px);
+    background-size: 12px 15px; background-repeat: repeat-y;
+  }
+
+  /* 底部：蓝白竖条纹带（参考封面底下那条） */
+  .pageframe .pf-stripes {
+    left: var(--fw); right: var(--fw); bottom: calc(var(--fw) + 6px); height: 16px;
+    background-color: transparent;
+    background-image: repeating-linear-gradient(90deg, var(--blue) 0 7px, var(--cream) 7px 14px);
+    background-size: auto; background-position: 0 0;
+    border-top: 1.5px dashed rgba(107,68,54,.34);
+  }
+  /* 条纹带上面压一条白色扇贝边 */
+  .pageframe .pf-scallop {
+    left: var(--fw); right: var(--fw); bottom: calc(var(--fw) + 22px); height: 11px;
+    background-color: transparent;
+    background-image: radial-gradient(circle at 50% 100%, var(--cream) 6.6px, transparent 7.1px);
+    background-size: 16px 10px; background-position: 0 0; background-repeat: repeat-x;
+  }
+  .sc { font-family: "Caveat", cursive; }
+  .hand { font-family: "Gochi Hand", cursive; }
+  /* 标题 = 剪报拼贴：一个字剪下来贴在一小张纸上。
+     字体用 ZCOOL KuaiLe（就是用户截图里那个 —— 站点正文字体本身），墨色是巧克力棕。 */
+  .sticker {
+    font-family: "ZCOOL KuaiLe", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .sticker span { display: block; white-space: nowrap; }
+  .sticker span:nth-child(1) { transform: rotate(-1deg); }
+  .sticker span:nth-child(2) { transform: rotate(-.4deg) translateX(9px); }
+  .sticker .ct {                                   /* 一个字母 = 一张厚实的小纸片 */
+    display: inline-block; font-style: normal;
+    margin: 0 .05em;
+    padding: .045em .155em .135em;                 /* 上薄下厚：纸片厚实，字又能顶到边上 */
+    min-width: .82em; text-align: center;          /* i / l 这种窄字也撑成方块 */
+    line-height: 1.12;
+    border-radius: 7px;
+    background: var(--pg, #fffdf8);
+    color: var(--brown);                           /* 巧克力棕墨，和标题统一 */
+    box-shadow:
+      0 2px 0 rgba(107,68,54,.13),
+      0 6px 10px rgba(120,80,60,.15),
+      inset 0 0 0 1.5px rgba(255,255,255,.8);      /* 纸片压边，看起来更像剪下来的 */
+    transform: rotate(var(--r, 0deg)) translateY(var(--y, 0px));
+    animation: ctPop .54s cubic-bezier(.34,1.56,.64,1) backwards;
+    animation-delay: var(--ad, 0s);
+  }
+  /* 逐字蹦出来，像是有人一张一张贴上去的 */
+  @keyframes ctPop {
+    from { opacity: 0; transform: rotate(var(--r, 0deg)) translateY(18px) scale(.8); }
+  }
+  /* 纸片四档：奶油白 / 藕粉 / 雾蓝 / 米黄 —— 就是参考里的那几块颜色 */
+  .sticker .ct.p0 { --pg: #fffdf8; }   /* 奶油白 */
+  .sticker .ct.p1 { --pg: #f9e3ea; }   /* 藕粉 */
+  .sticker .ct.p2 { --pg: #dbe9f4; }   /* 雾霾蓝 */
+  .sticker .ct.p3 { --pg: #fbd5e2; }   /* 粉（原来这里是浅黄）*/
+  .view { display: none; min-height: 100vh; position: relative; z-index: 1; }
+  .view.on { display: block; animation: viewIn .6s cubic-bezier(.22,1,.36,1); }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  /* ============ 顶部小条 ============ */
+  .vbar {
+    position: sticky; top: 0; z-index: 30;
+    display: flex; align-items: center; gap: 16px;
+    padding: 16px clamp(18px, 4vw, 52px);
+    background: linear-gradient(var(--paper) 62%, rgba(253,251,248,0));
+  }
+  .back {
+    border: 1px solid var(--line); background: rgba(255,255,255,.72); cursor: pointer;
+    font-family: "Gochi Hand", cursive; font-size: 14px; color: var(--pink-ink);
+    padding: 7px 16px; border-radius: 99px; transition: .2s;
+    backdrop-filter: blur(6px);
+  }
+  .back:hover { background: #fff; border-color: var(--pink-deep); transform: translateX(-2px); }
+  .vtitle { font-family: "Caveat", cursive; font-size: clamp(24px, 3vw, 34px); color: var(--pink-ink); }
+
+  /* ============ 首页 ============ */
+  /* gap 收窄 + .hero-left 改成「贴着自己内容」宽，标题就不会离小人那么远 */
+  #v-home.on { display: flex; align-items: center; justify-content: center;
+               gap: clamp(22px, 3vw, 66px); padding: 5vh clamp(20px, 5vw, 60px);
+               overflow: hidden; }   /* 脚底光晕会溢出 stage，不让它把页面撑出滚动条 */
+  .hero-left { flex: 0 1 auto; max-width: 780px; position: relative; z-index: 4; }
+  .hero-left h1 {
+    font-size: clamp(36px, 5vw, 70px);         /* 纸片厚了会变宽，字号相应收一点 */
+    line-height: 1.7;                          /* 纸片比字高，两行不能贴到一起 */
+    margin-bottom: 10px;
+  }
+  .hero-sub {
+    margin-top: 30px; font-family: "Gochi Hand", cursive; font-size: 15px;
+    color: var(--ink-faint); letter-spacing: .18em;
+  }
+  #openBtn {
+    margin-top: 38px; border: none; cursor: pointer;
+    background: var(--pink); color: #fff; font-family: "Caveat", cursive; font-size: 25px;
+    padding: 15px 42px; border-radius: 999px;
+    box-shadow: 0 5px 0 var(--pink-deep), 0 14px 26px rgba(107,68,54,.22);
+    transition: transform .16s, box-shadow .16s, background .2s;
+  }
+  #openBtn:hover { background: var(--pink-deep); transform: translateY(-1px); }
+  #openBtn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--pink-deep); }
+  #openBtn:disabled { cursor: default; }
+  .bar-wrap {
+    margin-top: 20px; width: min(340px, 78vw); height: 7px; border-radius: 99px;
+    background: rgba(107,68,54,.16); overflow: hidden;
+    opacity: 0; height: 0; transition: opacity .4s;
+  }
+  .bar-wrap.live { opacity: 1; height: 7px; }
+  .bar-fill { width: 0; height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--pink), var(--pink-deep)); }
+  .bar-tip {
+    margin-top: 9px; font-family: "Gochi Hand", cursive; font-size: 13px;
+    color: var(--ink-faint); height: 17px;
+  }
+  /* 图集单元格是 300x450 -> 舞台必须是 2:3，否则小人会被压扁。
+     宽度用 --k 控制整数倍缩放：非整数倍 + pixelated 会让像素点忽大忽小、看着发糊。 */
+  .stage { position: relative; flex: 0 0 auto; width: calc(300px * var(--k, 1)); aspect-ratio: 2 / 3;
+           container-type: inline-size; }
+  .pose {
+    position: absolute; inset: 0;
+    background: url(assets/turn-atlas.png) 50% 50% / 700% 300% no-repeat;
+    image-rendering: pixelated;
+  }
+  /* 倍率 × 像素比不是整数时（例如 1.5 倍 @ dpr=1），nearest-neighbor 会让像素点忽大忽小，
+     退回平滑放大反而更均匀 */
+  .pose.smooth { image-rendering: auto; }
+
+  /* ---- 脚底：别让小人飘着（一层地面柔光 + 贴地阴影 + 几朵小花） ---- */
+  .floor {                                       /* 以「脚底线」为中心的一圈地面光 */
+    position: absolute; left: 50%; top: 100%; width: 142%; height: 38%;
+    transform: translate(-50%, -50%); border-radius: 50%;
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(255,255,255,.96) 0%, rgba(255,243,247,.62) 42%, rgba(107,68,54,0) 72%);
+    filter: blur(2px);
+  }
+  .char-shadow {                                 /* 贴着鞋底的接触阴影 */
+    position: absolute; left: 50%; bottom: -8px; width: 62%; height: 26px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at 50% 50%,
+      rgba(122,58,80,.50) 0%, rgba(122,58,80,.28) 38%, rgba(122,58,80,.10) 62%, transparent 78%);
+    filter: blur(3px);
+  }
+  .feet-doodle { position: absolute; inset: 0; pointer-events: none; }
+  .feet-doodle span {
+    position: absolute; line-height: 1; transform-origin: 50% 60%;
+    animation: feetSway 3.8s ease-in-out var(--fd, 0s) infinite alternate;
+  }
+  /* 脚底小花按舞台宽度缩放（cqw 不支持时有 px 兜底） */
+  .feet-doodle span:nth-child(1) { font-size: 20px; font-size: 7.6cqw; --fd: 0s; }
+  .feet-doodle span:nth-child(2) { font-size: 17px; font-size: 6.2cqw; --fd: -1.3s; }
+  .feet-doodle span:nth-child(3) { font-size: 14px; font-size: 5.2cqw; --fd: -2.5s; }
+  @keyframes feetSway {
+    from { transform: translate(-50%, 50%) rotate(-16deg); }
+    to   { transform: translate(-50%, 50%) rotate(14deg); }
+  }
+  /* ============ 落花 ============ */
+  .hearts { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .hearts span {
+    position: absolute; top: -12vh; will-change: transform;
+    animation: petalFall var(--dur, 12s) linear var(--delay, 0s) infinite;
+  }
+  .hearts span i {                       /* 内层负责左右摇摆 + 翻转，外层负责下落 */
+    display: block; font-style: normal; line-height: 1;
+    animation: petalSway var(--sway, 3.4s) ease-in-out infinite alternate;
+  }
+  @keyframes petalFall {
+    0%   { transform: translateY(0); opacity: 0; }
+    7%   { opacity: var(--op, .8); }
+    90%  { opacity: var(--op, .8); }
+    100% { transform: translateY(128vh); opacity: 0; }
+  }
+  @keyframes petalSway {
+    from { transform: translateX(calc(-1 * var(--amp, 16px))) rotate(-24deg); }
+    to   { transform: translateX(var(--amp, 16px)) rotate(18deg); }
+  }
+  @media (max-width: 940px) {
+    #v-home.on { flex-direction: column-reverse; text-align: center; padding-top: 7vh; gap: 2px; }
+    .bar-wrap { margin-left: auto; margin-right: auto; }
+  }
+
+  /* ============ 贴纸装饰（少而整齐） ============ */
+  .deco-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .deco { position: absolute; opacity: .62; pointer-events: none; user-select: none;
+          filter: saturate(.92); }
+  .deco.drag { pointer-events: auto; cursor: grab; opacity: .95; }
+  .deco.drag:active { cursor: grabbing; }
+
+  /* ============ 手绘小元素 ============ */
+  .doodle { position: absolute; pointer-events: none; opacity: .5; }
+  /* 太阳单独提亮：默认 opacity .5 在粉底上几乎看不见，给它 .85 + 一圈暖光 */
+  .doodle.sun { opacity: .85; filter: drop-shadow(0 0 11px rgba(226,196,138,.55)); }
+
+  /* ============ 板块菜单（粉色展板 + 中间站一个像素小人） ============ */
+  #v-menu { padding: 5vh clamp(16px, 4vw, 48px) 4vh; }
+  .menu-banner {                                 /* 参考视频里的那块「展板」 */
+    position: relative; z-index: 2;
+    max-width: min(1160px, 95vw); margin: 0 auto;
+    padding: clamp(20px, 2.8vh, 36px) clamp(14px, 2.2vw, 32px) clamp(22px, 3.2vh, 40px);
+    background: rgba(255,255,255,.44);
+    border: 1px dashed rgba(107,68,54,.38);
+    border-radius: 28px;
+  }
+  .menu-head { text-align: center; margin-bottom: clamp(16px, 2.4vh, 30px); position: relative; z-index: 3; }
+  .menu-head h2 { font-size: clamp(28px, 3.5vw, 46px); line-height: 1.62; }
+  .menu-head p { margin-top: 8px; font-family: "Gochi Hand", cursive; color: var(--ink-faint); font-size: 15px; }
+  /* 用显式 5 列网格，不靠 flex 换行 —— 换行点会随字号/视口乱跳 */
+  .menu-grid {
+    display: grid; grid-template-columns: repeat(5, auto);
+    justify-content: center; align-items: center;
+    gap: clamp(10px, 1.4vw, 22px); position: relative; z-index: 3;
+  }
+  .menu-break { display: none; }
+  /* 第 5 张（Messages）横跨整行居中 */
+  .menu-grid > .menu-card:last-child { grid-column: 1 / -1; justify-self: center; }
+  /* 中间的小人：比首页小一号，脚下一样有地面 */
+  .menu-grid .stage.mini { width: clamp(168px, 17.5vw, 256px); }
+  @keyframes cardIn {
+    from { opacity: 0;
+           transform: translateY(calc(var(--ty, 0px) + 24px)) rotate(0deg) scale(.94); }
+  }
+  .menu-card {
+    width: clamp(130px, 12.2vw, 164px); background: #fff; border-radius: 20px; cursor: pointer;
+    border: 1px solid rgba(107,68,54,.28);
+    padding: 22px 12px 18px; text-align: center;
+    box-shadow: 0 12px 34px rgba(107,68,54,.10);
+    font-family: inherit;
+    /* 每张卡轻微歪一点，像参考视频里手贴上去的 */
+    transform: translateY(var(--ty, 0px)) rotate(var(--rot, 0deg));
+    transition: transform .28s cubic-bezier(.22,1,.36,1), box-shadow .28s;
+    animation: cardIn .5s cubic-bezier(.22,1,.36,1) var(--d, 0s) backwards;
+  }
+  .menu-card:hover {
+    transform: translateY(calc(var(--ty, 0px) - 10px)) rotate(calc(var(--rot, 0deg) * .3)) scale(1.04);
+    box-shadow: 0 24px 44px rgba(107,68,54,.18); z-index: 5;
+  }
+  .menu-card .ic { width: clamp(60px, 6.6vw, 84px); aspect-ratio: 1; object-fit: contain; display: block; margin: 0 auto;
+                   filter: drop-shadow(0 6px 10px rgba(107,68,54,.18)); }
+  .menu-card .nm { margin-top: 12px; font-family: "Caveat", cursive; font-size: clamp(20px, 1.75vw, 25px); color: var(--pink-ink); }
+  .menu-card .sub { margin-top: 3px; font-size: 10.5px; color: var(--ink-faint); letter-spacing: .14em; }
+  /* 窄屏：小人单独占一行放最上面，卡片两列排。
+     这段必须放在上面的菜单规则之后，否则同优先级会被覆盖。 */
+  @media (max-width: 940px) {
+    .menu-grid { grid-template-columns: 1fr 1fr; gap: 12px; justify-items: center; }
+    .menu-grid .stage.mini { grid-column: 1 / -1; order: -1; width: 158px; margin: 0 0 8px; }
+    .menu-grid > .menu-card:last-child { grid-column: 1 / -1; }
+    .menu-card { width: 100%; max-width: 210px; }
+  }
+
+  /* ============ 巡演造型 ============ */
+  #v-tour { padding-bottom: 7vh; }
+  .tour-grid {
+    display: grid; grid-template-columns: minmax(300px, 1.15fr) minmax(300px, .85fr);
+    gap: clamp(22px, 4vw, 64px); align-items: center;
+    padding: 0 clamp(18px, 4vw, 52px);
+  }
+  .map-card {
+    background: #fff; border-radius: 20px; padding: 18px 18px 14px;
+    border: 1px solid rgba(107,68,54,.24);
+    box-shadow: 0 16px 40px rgba(107,68,54,.10);
+  }
+  .map-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; padding: 0 4px; }
+  .map-title { font-family: "Caveat", cursive; font-weight: 700; font-size: 22px; color: var(--brown); letter-spacing: .01em; }
+  .map-sub { font-family: "Gochi Hand", cursive; font-size: 12px; color: var(--ink-faint); letter-spacing: .08em; }
+  .map-canvas { position: relative; width: 100%; aspect-ratio: 1010 / 666; }
+  .map-canvas .worldmap {
+    position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+    /* SVG 陆地是纯黑填充，反相后就是参考图那种「浅灰陆地 + 白底」，国界自然成细线 */
+    filter: invert(1) brightness(.935) contrast(.96);
+  }
+  .route-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .route-arc { fill: none; stroke-width: 1.8; stroke-linecap: round; opacity: .88; }
+  .route-land { fill: none; stroke-width: 1.5; stroke-linecap: round; opacity: .55; }
+  .pulse { animation: pulse 2.6s ease-in-out infinite; transform-origin: center; }
+  @keyframes pulse { 0%,100% { opacity: .18; r: 5; } 50% { opacity: .05; r: 11; } }
+
+  .pin {
+    position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 3;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pin i {
+    width: 9px; height: 9px; border-radius: 50%; background: #fffdf8;
+    border: 2.2px solid var(--brown); box-shadow: 0 1px 4px rgba(107,68,54,.35);
+    transition: transform .2s, border-color .2s;
+  }
+  .pin b {
+    position: absolute; bottom: 13px; left: 50%; transform: translate(-50%, 2px);
+    white-space: nowrap; font-family: "Gochi Hand", cursive; font-size: 10.5px;
+    color: var(--brown); background: rgba(255,253,248,.96); padding: 1px 8px; border-radius: 99px;
+    border: 1px dashed rgba(107,68,54,.42);
+    opacity: 0; transition: .2s; pointer-events: none;
+  }
+  .pin:hover b, .pin.active b { opacity: 1; transform: translate(-50%, 0); }
+  .pin.active i { transform: scale(1.55); border-color: var(--blue-ink); }
+  .pin.active b { color: #fffdf8; background: var(--brown); border-color: var(--brown); border-style: solid; }
+  .map-legend {
+    display: flex; gap: 16px; justify-content: center; margin-top: 10px;
+    font-family: "Gochi Hand", cursive; font-size: 11.5px; color: var(--ink-faint);
+  }
+  .map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .map-legend i { width: 16px; height: 2px; border-radius: 2px; display: inline-block; }
+
+  .du-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .du-row { display: flex; align-items: center; gap: clamp(10px, 2vw, 24px); }
+  .du-arrow {
+    width: 52px; height: 52px; border-radius: 50%; cursor: pointer;
+    border: 1px solid rgba(107,68,54,.36); background: #fff;
+    color: var(--pink-deep); font-size: 26px; line-height: 1;
+    box-shadow: 0 8px 20px rgba(107,68,54,.14); transition: .18s;
+  }
+  .du-arrow:hover { background: var(--pink); color: #fff; transform: scale(1.07); }
+  .du-stage {
+    position: relative; width: min(280px, 58vw); height: min(370px, 68vw);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .du-stage .halo {
+    position: absolute; left: 50%; bottom: -4%; transform: translateX(-50%);
+    width: 108%; aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.98) 0%, rgba(251,227,233,.62) 52%, transparent 72%);
+  }
+  .du-stage img {
+    position: relative; z-index: 1; max-height: 100%; max-width: 100%;
+    image-rendering: pixelated; transition: opacity .16s, transform .16s;
+  }
+  .du-stage img.swap { opacity: 0; transform: translateY(8px) scale(.97); }
+  .du-meta { text-align: center; }
+  .du-meta .where { font-family: "Caveat", cursive; font-size: clamp(27px, 3.2vw, 37px); color: var(--pink-ink); }
+  .du-meta .where small { font-family: "Gochi Hand", cursive; font-size: 15px; color: var(--ink-faint); margin-left: 8px; }
+  .du-meta .count { font-family: "Gochi Hand", cursive; font-size: 13px; color: var(--ink-faint); margin-top: 2px; }
+  @media (max-width: 1000px) { .tour-grid { grid-template-columns: 1fr; } .map-card { order: 2; } }
+
+  /* ============ 照片墙 ============ */
+  #photoField {
+    position: relative; margin: 0 clamp(18px, 4vw, 52px); height: 78vh; min-height: 520px;
+    border-radius: 22px; background: rgba(255,255,255,.42);
+    border: 1px dashed rgba(107,68,54,.38); overflow: hidden;
+  }
+  .pola { position: absolute; touch-action: none; cursor: zoom-in;
+          filter: drop-shadow(0 10px 16px rgba(180,120,130,.20)); }
+  .pola.dragging { cursor: grabbing; }
+  /* 45% 而非 50%：wall 里的原图多是 760x1000+ 的竖图，人脸偏上，
+     居中裁会把头顶切掉，往下挪一点取到脸部 */
+  .pola .pic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+               object-position: 50% 32%; background: #f0e9df; }
+  .pola .frm { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
+
+  /* ============ 专辑 ============ */
+  #v-albums { padding-bottom: 9vh; }
+  .album-block {
+    display: grid; grid-template-columns: minmax(200px, 300px) 1fr;
+    gap: clamp(20px, 3.4vw, 54px); align-items: start;
+    padding: 0 clamp(18px, 4vw, 52px); margin-bottom: clamp(46px, 7vh, 90px);
+  }
+  .covers { display: flex; flex-direction: column; gap: 18px; position: sticky; top: 90px; }
+  .covers img {
+    width: 100%; display: block; border-radius: 6px; cursor: zoom-in;
+    border: 9px solid #fff; box-shadow: 0 14px 32px rgba(107,68,54,.16);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .covers img:nth-child(1) { rotate: -1.5deg; }
+  .covers img:nth-child(2) { rotate: 1.3deg; }
+  .covers img:hover { transform: translateY(-5px) rotate(0deg); }
+  .album-info h3 { font-family: "Caveat", cursive; font-size: clamp(38px, 4.4vw, 56px); color: var(--pink-ink); line-height: 1; }
+  .album-info .meta { font-family: "Gochi Hand", cursive; color: var(--ink-soft); font-size: 15px; margin-top: 6px; }
+  .album-info .rule { height: 1px; background: var(--line); margin: 20px 0 22px; }
+  .album-grid { columns: 3 168px; column-gap: 16px; }
+  .album-grid figure {
+    margin: 0 0 16px; break-inside: avoid; background: #fff; padding: 7px;
+    border-radius: 5px; box-shadow: 0 8px 20px rgba(107,68,54,.12);
+    cursor: zoom-in; transition: transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .album-grid figure:hover { transform: translateY(-4px) scale(1.015); }
+  .album-grid img { width: 100%; height: auto; display: block; border-radius: 2px; }
+  @media (max-width: 860px) { .album-block { grid-template-columns: 1fr; } .covers { position: static; flex-direction: row; } .covers img { width: 46%; } }
+
+  /* ============ Feed ============ */
+  #v-feed { padding-bottom: 9vh; }
+  .phone-wrap { display: flex; justify-content: center; padding: 0 16px; }
+  .phone {
+    width: min(400px, 93vw); background: #5f4234; border-radius: 44px;
+    padding: 13px 11px 18px;
+    box-shadow: 0 0 0 5px rgba(255,253,248,.85), 0 28px 56px rgba(107,68,54,.32);
+    position: relative;
+  }
+  .phone .notch { display: block; width: 92px; height: 16px; margin: 2px auto 9px; background: #3d261d; border-radius: 99px; }
+  .screen {
+    background: #fff; border-radius: 32px; height: min(68vh, 640px); overflow-y: auto;
+    overflow-x: hidden; padding-bottom: 34px; scrollbar-width: none;
+  }
+  .screen::-webkit-scrollbar { width: 0; }
+  .wvs-head {
+    position: sticky; top: 0; z-index: 3; background: rgba(255,255,255,.97);
+    backdrop-filter: blur(8px); padding: 12px 14px 0; border-bottom: 1px solid #f0e9df;
+  }
+  .wvs-top { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; }
+  .wvs-head .av {
+    width: 36px; height: 36px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, #7fa8c4, #a6c7dd);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px;
+  }
+  .wvs-head .who { font-weight: 600; color: #5f4234; font-size: 15px; line-height: 1.15; }
+  .wvs-head .who em { font-style: normal; color: #5c86a6; font-size: 11.5px; display: block; }
+  .wvs-head .cnt { margin-left: auto; font-size: 11px; color: #9aa7ae; }
+  .wvs-tabs { display: flex; gap: 4px; }
+  .wvs-tab {
+    flex: 1; border: none; background: none; cursor: pointer; padding: 8px 0 10px;
+    font-size: 12px; letter-spacing: .1em; color: #a6b2b8; position: relative;
+    border-top: 2px solid transparent; font-family: inherit;
+  }
+  .wvs-tab.on { color: #5f4234; border-top-color: #5c86a6; }
+  .wvs-panel { display: none; padding: 12px 12px 0; }
+  .wvs-panel.on { display: block; }
+  .wvs-card { background: #fff; border: 1px solid #f0e9df; border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
+  .wvs-card .row { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+  .wvs-card .row .a2 { width: 26px; height: 26px; border-radius: 50%; background: linear-gradient(135deg,#7fa8c4,#a6c7dd); flex: none; }
+  .wvs-card .row .n { font-size: 12.5px; color: #5f4234; font-weight: 600; }
+  .wvs-card .row .t { font-size: 10.5px; color: #a6b2b8; margin-left: auto; }
+  .wvs-card img { display: block; width: 100%; cursor: zoom-in; }
+  .wvs-card .foot { display: flex; gap: 14px; padding: 9px 13px 12px; font-size: 11px; color: #9aa7ae; }
+  .wvs-card .foot .heart { color: #cd8298; }
+  .wvs-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .wvs-grid img {
+    width: 100%; aspect-ratio: 3/4; object-fit: cover; object-position: top;
+    display: block; cursor: zoom-in; background: #f0e9df;
+  }
+  .wvs-grid img:hover { opacity: .86; }
+
+  /* ---- Highlights：圆形高光盘，点一下直接跳进 STORY 的对应片段 ---- */
+  .wvs-hl { display: flex; gap: 13px; padding: 2px 3px 8px; overflow-x: auto; scrollbar-width: none; }
+  .wvs-hl::-webkit-scrollbar { display: none; }
+  .wvs-hl button {
+    flex: none; width: 58px; border: 0; padding: 0; background: none; cursor: pointer;
+    font-family: inherit;
+  }
+  .wvs-hl .ring {                                  /* 彩虹环 = IG/Weverse 的高光边 */
+    display: block; width: 56px; height: 56px; border-radius: 50%; padding: 2.5px; box-sizing: border-box;
+    background: conic-gradient(from 210deg, #e8c88c, #e6a3b6, #a6c7dd, #e8c88c);
+    transition: transform .2s;
+  }
+  .wvs-hl button:hover .ring { transform: scale(1.07) rotate(-3deg); }
+  .wvs-hl .ring em {
+    display: block; width: 100%; height: 100%; border-radius: 50%;
+    border: 2.5px solid #fff; background-size: cover; background-position: center top;
+  }
+  .wvs-hl .nm {
+    display: block; margin-top: 6px; font-size: 9.5px; letter-spacing: .06em;
+    color: #6f7d84; text-align: center; white-space: nowrap;
+  }
+  .wvs-head .vf {                                  /* 认证小勾 */
+    width: 14px; height: 14px; border-radius: 50%; background: #5c86a6; color: #fff;
+    font-size: 9px; line-height: 14px; text-align: center; flex: none; font-weight: 700;
+  }
+
+  /* ---- 双击点赞的心跳动画 ---- */
+  .burst {
+    position: absolute; z-index: 7; pointer-events: none; color: #e6a3b6;
+    font-size: 46px; line-height: 1; text-shadow: 0 3px 12px rgba(200,90,120,.45);
+    transform: translate(-50%, -50%) scale(.3);
+    animation: burst .86s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  @keyframes burst {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(.3) rotate(-14deg); }
+    22%  { opacity: 1; transform: translate(-50%,-50%) scale(1.2) rotate(5deg); }
+    60%  { opacity: .95; transform: translate(-50%,-74%) scale(1) rotate(0deg); }
+    100% { opacity: 0; transform: translate(-50%,-142%) scale(.9); }
+  }
+
+  /* ---- STORY（自动播放，像 Weverse/IG 的那种） ---- */
+  .wvs-panel#panelStory { padding: 0; }
+  /* story 模式下去掉屏幕底部留白，否则暗色 story 下面会露出一条白边 */
+  #v-feed .screen.story-on { padding-bottom: 0; }
+  .story {
+    position: relative; background: #14161b; overflow: hidden;
+    height: calc(min(68vh, 640px) - 112px);      /* JS 会按真实头部高度再精确算一次 */
+  }
+  .story-bg {                                     /* 模糊放大的同图做背景，避免黑边 */
+    position: absolute; inset: -10%; background-size: cover; background-position: center;
+    /* 亮度别压太狠：0.5 会看起来像纯黑边，0.78 才看得出「是这张照片的虚化版」 */
+    filter: blur(30px) brightness(.78) saturate(1.25);
+    transform: scale(1.06);
+  }
+  .story img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
+  .story-bars { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 3px; z-index: 4; }
+  .story-bars i { flex: 1; height: 2.5px; border-radius: 3px; background: rgba(255,255,255,.3); overflow: hidden; }
+  .story-bars i em { display: block; height: 100%; width: 0; background: #fff; border-radius: 3px; }
+  .story-bars i.done em { width: 100%; }
+  .story-bars i.cur em { animation: storyFill var(--d, 4.6s) linear forwards; }
+  @keyframes storyFill { from { width: 0; } to { width: 100%; } }
+  .story.paused .story-bars i.cur em { animation-play-state: paused; }
+  .story-top {
+    position: absolute; top: 22px; left: 12px; right: 12px; z-index: 4;
+    display: flex; align-items: center; gap: 8px; color: #fff; font-size: 12.5px;
+    text-shadow: 0 1px 8px rgba(0,0,0,.6);
+  }
+  .story-top .sa {
+    width: 26px; height: 26px; border-radius: 50%; flex: none;
+    background: linear-gradient(135deg, #7fa8c4, #a6c7dd);
+    display: flex; align-items: center; justify-content: center; font-size: 12px;
+  }
+  .story-top b { font-weight: 600; }
+  .story-top .st { color: rgba(255,255,255,.72); font-size: 11px; }
+  .story-x {
+    margin-left: auto; border: none; background: rgba(255,255,255,.18); color: #fff;
+    width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 16px; line-height: 1;
+    backdrop-filter: blur(4px);
+  }
+  .story-cap {
+    position: absolute; left: 0; right: 0; bottom: 68px; padding: 0 22px;
+    color: #fff; font-size: 13px; line-height: 1.75; text-align: center;
+    text-shadow: 0 2px 12px rgba(0,0,0,.8);
+  }
+  .story-nav { position: absolute; inset: 0; display: flex; z-index: 3; }
+  .story-nav i { cursor: pointer; }
+  .story-nav i:first-child { flex: .34; }
+  .story-nav i:last-child { flex: .66; }
+  .story-like {
+    position: absolute; right: 16px; bottom: 16px; z-index: 5;
+    width: 44px; height: 44px; border-radius: 50%; cursor: pointer; border: none;
+    background: rgba(255,255,255,.18); color: #fff; font-size: 21px; line-height: 1;
+    backdrop-filter: blur(6px); transition: transform .18s, background .18s;
+  }
+  .story-like.on { background: #e6a3b6; transform: scale(1.08); }
+  .phone-tip { text-align: center; margin-top: 16px; font-family: "Gochi Hand", cursive; color: var(--ink-faint); font-size: 13.5px; }
+
+  /* ============ 留言 ============ */
+  #v-messages { padding-bottom: 9vh; }
+  .wrap-center { max-width: 940px; margin: 0 auto; padding: 0 clamp(18px, 4vw, 52px); }
+  .msg-form {
+    background: #fff; border-radius: 18px; padding: 24px 26px;
+    box-shadow: 0 12px 30px rgba(107,68,54,.10);
+    border: 1px solid rgba(107,68,54,.22); margin-bottom: 40px;
+  }
+  .msg-form input, .msg-form textarea {
+    width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 11px 15px;
+    font-family: inherit; font-size: 15px; color: var(--ink); background: var(--paper-2);
+    outline: none; margin-bottom: 12px;
+  }
+  .msg-form textarea { min-height: 84px; resize: vertical; }
+  .msg-form input:focus, .msg-form textarea:focus { border-color: var(--pink-deep); background: #fff; }
+  .msg-form button {
+    width: 100%; border: none; border-radius: 999px; cursor: pointer; background: var(--pink);
+    color: #fff; padding: 13px; font-family: "Caveat", cursive; font-size: 23px;
+    box-shadow: 0 4px 0 var(--pink-deep);
+  }
+  .msg-form button:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--pink-deep); }
+  .msg-list { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; margin-bottom: 56px; }
+  .msg-note {
+    width: 218px; background: #fff; border-radius: 5px; padding: 15px 17px 17px;
+    box-shadow: 0 9px 20px rgba(107,68,54,.10); position: relative; rotate: var(--r, 0deg);
+  }
+  .msg-note::before {
+    content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+    width: 62px; height: 19px; background: rgba(205,226,242,.95);
+    border-left: 2px dashed #fff; border-right: 2px dashed #fff;
+  }
+  .msg-note .who { font-family: "Caveat", cursive; font-size: 20px; color: var(--pink-ink); }
+  .msg-note .txt { margin-top: 6px; font-size: 13.5px; line-height: 1.85; color: #8a6e63; word-break: break-word; }
+  .msg-note .time { margin-top: 9px; font-size: 11px; color: var(--ink-faint); }
+  .letter {
+    max-width: 620px; margin: 0 auto 7vh; background: var(--cream);
+    border: 1px solid #f4e2e7; border-radius: 5px;
+    box-shadow: 0 20px 46px rgba(107,68,54,.13);
+    padding: clamp(30px, 5vw, 54px); position: relative; line-height: 2.15; color: #8a6e63;
+    font-size: clamp(14px, 2vw, 16.5px);
+  }
+  .letter::before {
+    content: ""; position: absolute; top: -14px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+    width: 108px; height: 27px; background: rgba(205,226,242,.95);
+    border-left: 2px dashed #fff; border-right: 2px dashed #fff;
+  }
+  .letter .dear { font-family: "Caveat", cursive; font-size: 31px; color: var(--pink-ink); margin-bottom: 12px; }
+  .letter .sign { text-align: right; font-family: "Caveat", cursive; font-size: 27px; color: var(--pink-deep); margin-top: 18px; }
+  .cake { position: relative; width: 200px; height: 170px; margin: 0 auto 5vh; }
+  .cake i { position: absolute; display: block; }
+  .cake .flame {
+    left: 94px; top: 0; width: 12px; height: 16px;
+    border-radius: 50% 50% 50% 50%/60% 60% 40% 40%;
+    background: radial-gradient(circle at 50% 75%, #fffdf8, #f6d9a4 58%, #e0aa72);
+    animation: flick .28s ease-in-out infinite alternate;
+    box-shadow: 0 0 20px 5px rgba(255,203,80,.62);
+  }
+  @keyframes flick { from { transform: scaleY(1) skewX(-3deg); } to { transform: scaleY(1.18) skewX(4deg); } }
+  .cake .candle { left: 96px; top: 14px; width: 8px; height: 34px;
+    background: repeating-linear-gradient(to bottom, #e6a3b6 0 6px, #fff 6px 12px); border-radius: 2px; }
+  .cake .top { left: 20px; top: 46px; width: 160px; height: 18px; background: #f7dee4; border-radius: 8px 8px 3px 3px; }
+  .cake .cream { left: 20px; top: 58px; width: 160px; height: 10px;
+    background: radial-gradient(circle at 8px 0, #fff 7px, transparent 8px) repeat-x; background-size: 20px 10px; }
+  .cake .body { left: 28px; top: 64px; width: 144px; height: 62px;
+    background: repeating-linear-gradient(to right, #e6a3b6 0 12px, #f7dee4 12px 24px); border-radius: 0 0 10px 10px; }
+  .cake .dot1,.cake .dot2,.cake .dot3,.cake .dot4 { width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+  .cake .dot1 { left: 52px; top: 88px; } .cake .dot2 { left: 88px; top: 96px; }
+  .cake .dot3 { left: 124px; top: 86px; } .cake .dot4 { left: 104px; top: 78px; }
+  .cake .plate { left: 10px; top: 126px; width: 180px; height: 14px; background: #fff; border-radius: 50%;
+                 box-shadow: 0 10px 0 rgba(107,68,54,.16); }
+  .hb {
+    font-family: "Caveat", cursive; font-weight: 700; text-align: center;
+    font-size: clamp(44px, 7.4vw, 84px); color: var(--pink-ink); line-height: 1.05;
+  }
+  .hb-sub { text-align: center; font-family: "Gochi Hand", cursive; color: var(--ink-faint); margin-top: 8px; font-size: 15px; }
+
+  /* ============ 唱片按钮 ============ */
+  #disc {
+    /* z-index 要压在 .pageframe(70) 上面，位置也要避开底部那条蓝白条纹 */
+    display: none; position: fixed; right: 34px; bottom: 54px; z-index: 80;
+    width: 52px; height: 52px; border-radius: 50%; border: 4px solid #fff;
+    background: radial-gradient(circle at 50% 50%, #fff 0 12%, #6b4436 13% 60%, #8d6a58 61% 100%);
+    box-shadow: 0 6px 18px rgba(107,68,54,.28); cursor: pointer;
+    align-items: center; justify-content: center; color: #fff; font-size: 18px;
+  }
+  #disc.show { display: flex; }
+  #disc.playing { animation: spin 3.4s linear infinite; }
+  #disc.paused::after { content: "❚❚"; position: absolute; font-size: 10px; letter-spacing: -1px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============ 灯箱 ============ */
+  .lb {
+    position: fixed; inset: 0; z-index: 90; display: none;
+    background: rgba(40,32,32,.9); backdrop-filter: blur(10px);
+    align-items: center; justify-content: center;
+  }
+  .lb.on { display: flex; }
+  .lb-img {
+    max-width: min(88vw, 1080px); max-height: 78vh; display: block;
+    border-radius: 6px; box-shadow: 0 30px 70px rgba(0,0,0,.5); background: #fff;
+    animation: lbIn .3s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes lbIn { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+  .lb button {
+    position: absolute; border: none; cursor: pointer; background: rgba(255,255,255,.14);
+    color: #fff; border-radius: 50%; width: 46px; height: 46px; font-size: 24px; line-height: 1;
+    display: flex; align-items: center; justify-content: center; transition: .18s;
+    backdrop-filter: blur(4px);
+  }
+  .lb button:hover { background: rgba(255,255,255,.3); }
+  .lb-close { top: 22px; right: 22px; }
+  .lb-prev { left: max(14px, 3vw); top: 50%; transform: translateY(-50%); }
+  .lb-next { right: max(14px, 3vw); top: 50%; transform: translateY(-50%); }
+  .lb-count { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+    font-family: "Gochi Hand", cursive; color: rgba(255,255,255,.72); font-size: 14px; letter-spacing: .1em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hearts span, .cake .flame, #disc.playing, .route-arc, .pulse { animation: none !important; }
+  }
+
+  /* ============================================================
+     手账剪贴簿风格覆盖层（放在最后 —— 同优先级时后面赢）
+     参考「风格参考.jpg」：奶油纸底 + 巧克力棕 + 雾蓝 + 藕粉
+     ============================================================ */
+
+  /* --- 按钮：巧克力棕缎带，中间一圈米色缝线 --- */
+  #openBtn {
+    background: var(--brown); color: var(--cream);
+    font-family: "ZCOOL KuaiLe", system-ui, sans-serif;
+    font-size: 18px; letter-spacing: .05em; padding: 17px 40px 16px;
+    box-shadow: 0 5px 0 #503227, 0 14px 26px rgba(107,68,54,.24),
+                inset 0 0 0 2px rgba(255,253,248,.3);
+  }
+  #openBtn:hover { background: var(--brown-soft); }
+  #openBtn:active { box-shadow: 0 1px 0 #503227, inset 0 0 0 2px rgba(255,253,248,.3); }
+  .bar-fill { background: linear-gradient(90deg, var(--brown), var(--pink-deep)); }
+  .hero-sub { color: var(--ink-soft); }
+
+  /* --- 顶栏 --- */
+  .back { background: var(--cream); border: 1.5px dashed rgba(107,68,54,.42); color: var(--brown); }
+  .back:hover { background: #fff; border-color: var(--brown); }
+  .vtitle { color: var(--brown); }
+
+  /* --- 所有「纸」类容器：奶油纸 + 里面一圈白压边，像贴在底纸上 --- */
+  .menu-banner { background: rgba(255,253,248,.7); border: 1.5px dashed rgba(107,68,54,.4); }
+  .menu-card, .map-card, .msg-form, .letter, .msg-note, .album-block {
+    background: var(--cream);
+    border-color: rgba(107,68,54,.22);
+    box-shadow: 0 12px 28px rgba(107,68,54,.13), inset 0 0 0 4px rgba(255,255,255,.62);
+  }
+  .menu-card .nm { color: var(--brown); }
+  .menu-card .ic { filter: drop-shadow(0 6px 10px rgba(107,68,54,.2)); }
+
+  /* --- 留言板 --- */
+  .msg-form button {
+    background: var(--brown); color: var(--cream);
+    font-family: "ZCOOL KuaiLe", system-ui, sans-serif; font-size: 17px; letter-spacing: .05em;
+    box-shadow: 0 4px 0 #503227, inset 0 0 0 2px rgba(255,253,248,.3);
+  }
+  .msg-form input:focus, .msg-form textarea:focus { border-color: var(--brown-soft); }
+  .msg-note .who { color: var(--brown); }
+  .msg-empty {
+    width: 100%; text-align: center; padding: 26px 0 30px;
+    font-family: "Gochi Hand", cursive; color: var(--ink-faint); font-size: 15px;
+  }
+
+  /* --- 底部扇贝蕾丝再明显一点 --- */
+  .pageframe .pf-scallop {
+    height: 11px;
+    background-image: radial-gradient(circle at 50% 100%, #ffffff 7px, transparent 7.6px);
+    background-size: 16px 11px;
+  }
+  .pageframe .pf-stripes { height: 16px; }
+
+  /* --- 顶部蓝色蕾丝餐垫（参考封面挂下来的那块镂空花边） --- */
+  .lace {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: clamp(190px, 22vw, 300px); z-index: 1; pointer-events: none;
+    filter: drop-shadow(0 4px 6px rgba(107,68,54,.10));
+  }
+  .lace-bow {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: clamp(54px, 6vw, 76px); z-index: 2; pointer-events: none;
+  }
+
+  /* --- 卡片：波浪云朵下缘 + 极淡波点底纹（参考的内容卡片） --- */
+  .menu-card { position: relative; }
+  .menu-card {
+    background-image: radial-gradient(rgba(107,68,54,.055) 1.5px, transparent 1.95px);
+    background-size: 12px 12px;
+  }
+  .menu-card::after {
+    content: ""; position: absolute; left: 13px; right: 13px; bottom: -6px; height: 7px;
+    background: radial-gradient(circle at 50% 0, var(--cream) 6px, transparent 6.5px)
+                repeat-x 0 0 / 12px 7px;
+    pointer-events: none;
+  }
+  .menu-banner {
+    background-image: radial-gradient(rgba(107,68,54,.05) 1.4px, transparent 1.85px);
+    background-size: 14px 14px;
+  }
+
+  /* --- 贴纸再实一点（原来是 .5，太淡） --- */
+  .doodle { opacity: .8; }
+
+  /* --- 大卡片也给云朵毛边（参考里「内容卡片多为波浪云朵形边缘」） --- */
+  .map-card, .album-block, .msg-form, .letter { position: relative; }
+  .map-card::after, .album-block::after, .msg-form::after, .letter::after {
+    content: ""; position: absolute; left: 16px; right: 16px; bottom: -6px; height: 7px;
+    background: radial-gradient(circle at 50% 0, var(--cream) 6px, transparent 6.5px)
+                repeat-x 0 0 / 12px 7px;
+    pointer-events: none;
+  }
+  /* --- 地图卡：细条纹底纹（参考里的「细条纹填充」） --- */
+  .map-card {
+    background-image: repeating-linear-gradient(0deg,
+      rgba(166,199,221,.11) 0 1px, transparent 1px 10px);
+  }
+
+  /* ============================================================
+     v15 —— 把版面填满：人物放大 / 造型总览 / 按压触感 / 蕾丝加强
+     ============================================================ */
+
+  /* --- 装饰层：默认在内容之下；需要压住内容的（比如照片墙上的夹子）用 --top --- */
+  .deco-layer--top { z-index: 6; }
+
+  /* --- 蕾丝餐垫：加大 + 加投影，让它真的「存在」 --- */
+  .lace {
+    width: clamp(230px, 26vw, 372px);
+    filter: drop-shadow(0 7px 11px rgba(107,68,54,.17));
+  }
+  .lace-bow { width: clamp(64px, 7vw, 92px); }
+
+  /* --- 装饰密度：单个 doodle 更实一点，边缘加一点纸感投影 --- */
+  .doodle { opacity: .84; }
+  .doodle.solid { opacity: 1; filter: drop-shadow(0 3px 5px rgba(107,68,54,.16)); }
+  .doodle.soft  { opacity: .55; }
+  /* 和纸胶带要「看得出来是一段胶带」，太淡就只剩一个虚线空框了 */
+  .doodle.tape2 { opacity: .82; }
+
+  /* --- 巡演页：人物放大 ---
+     必须包在 min-width 里：下面是后写的规则，不包的话会把
+     「@media (max-width:1000px) { .tour-grid{1fr} }」那条单列断点盖掉，
+     窄屏就会横向溢出（实测 390 宽下 scrollWidth 会顶到 680）。 */
+  @media (min-width: 1001px) {
+    .tour-grid { grid-template-columns: minmax(300px, 1.02fr) minmax(340px, .98fr); }
+    .du-stage { width: min(400px, 66vw); height: min(510px, 84vw); }
+    .du-stage .halo { width: 118%; }
+  }
+  .tour-grid { padding-top: 30px; }
+  /* 地图卡顶上夹三只夹子，免得看起来像一张没贴住的纸 */
+  .map-card { position: relative; }
+  .map-card .clip-row { top: -29px; padding: 0 8% 0 6%; justify-content: space-between; }
+
+  /* --- 造型总览（页面往下滑） --- */
+  .look-section { max-width: min(1180px, 94vw); margin: 4vh auto 0; position: relative; z-index: 2; }
+  .look-head {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 0 clamp(6px, 1.4vw, 20px) 14px;
+  }
+  .look-title { font-family: "Caveat", cursive; font-weight: 700; font-size: clamp(26px, 3vw, 34px); color: var(--brown); }
+  .look-sub { font-family: "Gochi Hand", cursive; font-size: 12.5px; color: var(--ink-faint); letter-spacing: .08em; }
+  .look-hint { margin-left: auto; font-family: "Gochi Hand", cursive; font-size: 12.5px; color: var(--ink-faint); }
+  .look-strip {
+    position: relative;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 13px; padding: clamp(14px, 1.8vw, 22px);
+    background: var(--cream); border: 1px solid rgba(107,68,54,.22); border-radius: 18px;
+    box-shadow: 0 12px 28px rgba(107,68,54,.13), inset 0 0 0 4px rgba(255,255,255,.62);
+  }
+  .look-strip::after {
+    content: ""; position: absolute; left: 16px; right: 16px; bottom: -6px; height: 7px;
+    background: radial-gradient(circle at 50% 0, var(--cream) 6px, transparent 6.5px) repeat-x 0 0 / 12px 7px;
+    pointer-events: none;
+  }
+  .look-cell {
+    padding: 0; border: 1.5px solid rgba(107,68,54,.18); border-radius: 11px;
+    background: linear-gradient(180deg, #fffdf8, #fbeef1);
+    cursor: pointer; overflow: hidden; display: block;
+    box-shadow: 0 3px 0 rgba(107,68,54,.10), 0 6px 12px rgba(107,68,54,.10);
+    transition: transform .13s cubic-bezier(.34,1.5,.64,1), box-shadow .13s, border-color .18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 像素小人是 1/4 缩略图，必须保持 NEAREST 放大；真人原图不能跟着被像素化，
+     所以 image-rendering 只挂在 .lc-duo 上，不挂整格。 */
+  .look-cell .lc-duo img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+  /* 窄屏：96 张挤成 4 列，别让总览拖出 30 多行 */
+  @media (max-width: 700px) {
+    .look-strip { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 9px; }
+  }
+  .look-cell:hover { transform: translateY(-3px) scale(1.04); border-color: var(--brown-soft); z-index: 2; }
+  .look-cell:active { transform: translateY(1px) scale(.94); box-shadow: 0 1px 0 rgba(107,68,54,.12); }
+  .look-cell.on {
+    border-color: var(--brown); border-width: 2px;
+    box-shadow: 0 0 0 3px rgba(230,163,182,.5), 0 6px 14px rgba(107,68,54,.18);
+  }
+
+  /* ============================================================
+     v15b —— 角落蕾丝 / 旁白小卡 / 照片墙夹子 / 按压手感
+     ============================================================ */
+
+  /* --- 按压触感：按下去要「快」，松开要「弹」 ---
+     关键在 transition-duration：按下时 60ms 瞬间到底，抬手时 300ms 回弹。
+     这样鼠标点一下也有明确的「咔哒」手感，而不是软绵绵地滑过去。 */
+  #openBtn, .back, .du-arrow, .wvs-tab, .menu-card, .lb button, .look-cell,
+  .msg-form button, #disc, .story-like, .story-nav i, .story-x,
+  .pin, .covers img, .album-grid figure, .wc img, .side-note {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform .3s cubic-bezier(.34,1.5,.64,1), box-shadow .18s ease,
+                background-color .18s, color .18s, border-color .18s, filter .18s;
+  }
+  /* ↓ 按下的一瞬间把回弹曲线换成硬曲线，手感就"实"了 */
+  #openBtn:active, .back:active, .du-arrow:active, .wvs-tab:active, .menu-card:active,
+  .lb button:active, .look-cell:active, .msg-form button:active, #disc:active,
+  .story-like:active, .story-nav i:active, .story-x:active, .pin:active,
+  .covers img:active, .album-grid figure:active {
+    transition-duration: .06s;
+  }
+  #openBtn:active, .msg-form button:active {
+    transform: translateY(4px) scale(.985) !important;
+  }
+  .back:active, .du-arrow:active { transform: scale(.9) !important; }
+  .menu-card:active { transform: translateY(3px) scale(.975) !important; box-shadow: 0 4px 10px rgba(107,68,54,.14) !important; }
+  .wvs-tab:active { transform: scale(.9); }
+  .lb button:active, .story-x:active { transform: scale(.86); }
+  .story-like:active { transform: scale(.82) !important; }
+  .story-nav i:active { transform: translateY(-50%) scale(.84); }
+  #disc:active { transform: scale(.9); }
+  .pin:active i { transform: scale(1.9); border-color: var(--pink-deep); }
+  .covers img:active, .album-grid figure:active { transform: scale(.965); }
+
+  /* 点下去的那一下「咔哒」——JS 加 .tapped，播一次短缩放 */
+  @keyframes tapPop {
+    0%   { transform: scale(1); }
+    38%  { transform: scale(.9); }
+    100% { transform: scale(1); }
+  }
+  .tapped { animation: tapPop .26s cubic-bezier(.34,1.4,.64,1); }
+
+  /* 触屏上把 hover 的位移关掉，免得手指划过去一片乱跳 */
+  @media (hover: none) {
+    .menu-card:hover, .look-cell:hover, .du-arrow:hover, .covers img:hover { transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tapped { animation: none; }
+    .view.on { animation: none; }
+  }
+
+  /* --- 四角蕾丝：每个视图的角上贴一块，把边角填实 ---
+     z-index:-1 —— 蕾丝是「垫在下面的纸」，必须压在内容之后；
+     这样即使角上正好有照片，看起来也是蕾丝垫在下面露出来一角，不糊住内容。 */
+  .corner-lace {
+    position: absolute; z-index: -1; pointer-events: none;
+    width: clamp(124px, 13.5vw, 214px);
+    filter: drop-shadow(0 6px 10px rgba(107,68,54,.17));
+  }
+  .corner-lace.tl { top: 0; left: 0; }
+  .corner-lace.tr { top: 0; right: 0; transform: scaleX(-1); }
+  .corner-lace.bl { bottom: 0; left: 0; transform: scaleY(-1); }
+  .corner-lace.br { bottom: 0; right: 0; transform: scale(-1, -1); }
+  /* 有顶栏的视图，上角蕾丝会被顶栏的纸色渐变盖住一半，所以往下让一点 */
+  .corner-lace.below { top: clamp(58px, 7.5vh, 84px); }
+  @media (max-width: 760px) {
+    .corner-lace { width: 104px; }
+    .corner-lace.below { display: none; }
+  }
+
+  /* --- 专辑页：.album-block 自己就是一块满宽的奶油色「纸页」，会把
+         视图级装饰层整个盖住。所以这里的装饰要放进 block 内部，
+         并让 block 成为层叠上下文 —— 装饰压在自己的底色之上、照片之下。 --- */
+  .album-block { position: relative; z-index: 1; }
+  .album-block > .deco-layer { z-index: -1; }
+
+  /* --- Feed：手机两侧的手账旁白卡（宽屏才出现） --- */
+  .feed-side { display: none; }
+  @media (min-width: 1120px) {
+    #v-feed .phone-wrap {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; gap: clamp(18px, 2.4vw, 44px);
+      padding: 0 clamp(20px, 3vw, 56px);
+    }
+    .feed-side { display: flex; flex-direction: column; gap: clamp(14px, 1.8vw, 24px); }
+    .feed-side--l { align-items: flex-end; }
+    .feed-side--r { align-items: flex-start; }
+  }
+  .side-note {
+    position: relative; width: 100%; max-width: 264px;
+    padding: 17px 17px 15px;
+    background: var(--cream);
+    border: 1px solid rgba(107,68,54,.2); border-radius: 3px;
+    box-shadow: 0 10px 22px rgba(107,68,54,.14), 0 3px 0 rgba(107,68,54,.07);
+    transform: rotate(var(--r, 0deg));
+    font-family: "Gochi Hand", cursive; color: var(--ink-soft);
+    font-size: 13.5px; line-height: 1.66;
+  }
+  .side-note .washi {                        /* 顶上那截和纸胶带 */
+    position: absolute; top: -11px; left: 50%;
+    width: 76px; height: 22px; transform: translateX(-50%) rotate(var(--wr, -3deg));
+    background: repeating-linear-gradient(90deg,
+      rgba(166,199,221,.55) 0 6px, rgba(219,233,244,.6) 6px 12px);
+    border-left: 1px dashed rgba(255,253,248,.9);
+    border-right: 1px dashed rgba(255,253,248,.9);
+    box-shadow: 0 2px 4px rgba(107,68,54,.10);
+  }
+  .side-note .sn-k {
+    display: block; font-family: "Caveat", cursive; font-weight: 700;
+    font-size: 21px; line-height: 1.16; color: var(--pink-ink);
+    margin-bottom: 6px;
+  }
+  .side-note p { margin: 0; }
+  .side-note .sn-d {
+    display: block; margin-top: 10px; padding-top: 8px;
+    border-top: 1px dashed rgba(107,68,54,.28);
+    font-size: 11.5px; letter-spacing: .12em; color: var(--ink-faint);
+  }
+  .side-note .sn-ic { position: absolute; right: 8px; bottom: 7px; width: 26px; opacity: .9; }
+  /* 小统计条：三格数字，像帖在本子边上的标签 */
+  .side-stat {
+    display: flex; width: 100%; max-width: 264px; gap: 0;
+    background: var(--blue-pale); border: 1px solid rgba(92,134,166,.34); border-radius: 3px;
+    box-shadow: 0 8px 18px rgba(107,68,54,.12);
+    transform: rotate(var(--r, 0deg));
+    overflow: hidden;
+  }
+  .side-stat span {
+    flex: 1; padding: 11px 4px 9px; text-align: center;
+    font-family: "Gochi Hand", cursive; font-size: 10.5px; letter-spacing: .1em;
+    color: var(--blue-ink);
+    border-right: 1px dashed rgba(92,134,166,.36);
+  }
+  .side-stat span:last-child { border-right: 0; }
+  .side-stat b { display: block; font-family: "Caveat", cursive; font-weight: 700; font-size: 22px; line-height: 1.05; color: var(--brown); }
+
+  /* --- 照片墙：面板顶上夹一排手帐夹 --- */
+  .photo-stage { position: relative; margin-top: 34px; }
+  .clip-row {
+    position: absolute; left: 0; right: 0; top: -31px; z-index: 6;
+    display: flex; justify-content: space-around; align-items: flex-end;
+    padding: 0 clamp(6px, 5vw, 96px);
+    pointer-events: none;
+  }
+  .menu-banner .clip-row { top: -31px; padding: 0 4%; }
+  /* 夹子本体：不能带 .doodle 的 absolute，否则 5 个夹子全叠在左上角 */
+  .clip { display: block; flex: none; }
+  .clip-row svg, .clip-side svg { display: block; filter: drop-shadow(0 4px 7px rgba(107,68,54,.3)); }
+  .clip-side { position: absolute; z-index: 6; pointer-events: none; top: 44%; }
+  /* 照片墙面板自己有 clamp(18px,4vw,52px) 的左右外边距，夹子要正好骑在面板边上 */
+  .clip-side.l { left: calc(clamp(18px, 4vw, 52px) - 25px); }
+  .clip-side.r { right: calc(clamp(18px, 4vw, 52px) - 25px); }
+  @media (max-width: 760px) { .clip-side { display: none; } }
+
+  /* --- 装饰层统一垫到内容之下：蕾丝/贴纸是「垫在下面的纸」，不该糊住照片和卡片 --- */
+  .deco-layer { z-index: -1; }
+
+  /* ============================================================
+     v17 —— 照片墙回到原来的面板底 / 装饰篮挪到左侧竖栏 / 造型总览 96 套全配真人原图
+     ============================================================ */
+
+  /* --- 照片墙容器：左边一列装饰篮，右边面板 ---
+     v16 是「面板 + 下面一条篮子」，从最底下拖到板上要跨过大半屏，不好拖；
+     改成左右两列，篮子就贴着板子的左边缘。--pad / --rail / --gap 三个变量在这里定，
+     夹子（.clip-side）和顶上那排夹子（.clip-row）靠它们对准板边。 */
+  .photo-stage {
+    --pad: clamp(18px, 4vw, 52px);
+    --rail: clamp(140px, 15.5vw, 224px);
+    --gap: clamp(14px, 1.6vw, 26px);
+    position: relative; margin-top: 34px;
+    padding: 0 var(--pad);
+    display: grid; grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--gap); align-items: start;
+  }
+  /* 面板自己不再吃左右外边距 —— 外边距改由 .photo-stage 的 padding 出，
+     这样 .wall-wrap 的盒子正好等于面板，夹子写 left:-25px 就能正好骑在板边上 */
+  .wall-wrap { position: relative; min-width: 0; }
+  #photoField { margin: 0; }
+  .wall-wrap .clip-row { padding: 0 clamp(6px, 2vw, 30px); }
+  .wall-wrap .clip-side.l { left: -25px; }
+  .wall-wrap .clip-side.r { right: -25px; }
+
+  /* --- 装饰篮（左侧竖栏） --- */
+  .charm-dock {
+    position: relative; display: flex; flex-direction: column; align-items: center;
+    gap: clamp(6px, .7vw, 10px);
+    padding: clamp(10px, 1.1vw, 14px) clamp(8px, 1vw, 12px) clamp(12px, 1.3vw, 16px);
+    background: linear-gradient(180deg, rgba(255, 255, 255, .74), rgba(247, 222, 228, .62));
+    border: 1px solid rgba(107, 68, 54, .16); border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(107, 68, 54, .10), inset 0 0 0 4px rgba(255, 255, 255, .5);
+  }
+  .dock-basket { flex: none; width: clamp(70px, 6.6vw, 104px); }
+  .dock-basket img {
+    display: block; width: 100%; height: auto;
+    filter: drop-shadow(0 8px 13px rgba(205, 130, 152, .36));
+  }
+  .dock-side { width: 100%; min-width: 0; }
+  .dock-title {
+    display: block; text-align: center;
+    font-family: "Caveat", cursive; font-weight: 700;
+    font-size: clamp(18px, 1.6vw, 23px); line-height: 1; color: var(--pink-ink);
+  }
+  .dock-pile {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-end;
+    gap: 5px; width: 100%; padding: 4px 2px 0;
+  }
+  /* 小物本体：宽度由 JS 按原图比例算好（高度 44px 上下），--r 是随手一摆的倾斜角 */
+  .charm {
+    flex: none; display: block;
+    width: var(--w, 40px); height: var(--hh, 44px);
+    cursor: grab; touch-action: none; user-select: none; -webkit-user-drag: none;
+    rotate: var(--r, 0deg);
+    filter: drop-shadow(0 3px 5px rgba(107, 68, 54, .28));
+    transition: rotate .2s, translate .2s cubic-bezier(.34, 1.5, .64, 1), filter .18s, scale .18s;
+  }
+  .dock-pile .charm { align-self: flex-end; }
+  .dock-pile .charm:hover { translate: 0 -5px; filter: drop-shadow(0 8px 11px rgba(107, 68, 54, .3)); z-index: 3; }
+  /* 拿起来的那一瞬间：放大一点 + 影子拉开，手感上「这只被捏住了」 */
+  .charm.lifting, .charm.lifting:hover {
+    cursor: grabbing; translate: 0 0; scale: 1.1;
+    filter: drop-shadow(0 14px 18px rgba(107, 68, 54, .38));
+  }
+  /* 拖动期间：挂在 body 上、position:fixed，跟着指针满屏走。
+     篮子挪到左边之后不能再像 v16 那样「一按就塞进板子里」——
+     板子 overflow:hidden，篮子那一段全在板外，会被整段裁掉、看不见。
+     pointer-events:none 是为了不触发 .charm:hover 的位移。 */
+  .charm.flying {
+    position: fixed; margin: 0; pointer-events: none;
+    filter: drop-shadow(0 14px 18px rgba(107, 68, 54, .38));
+  }
+  /* 落在板子上 */
+  .charm.placed { position: absolute; margin: 0; }
+  .charm-slot { flex: none; display: block; width: var(--w, 40px); height: var(--hh, 44px); }
+  /* 拖到板子外面 -> 回篮子，弹一下 */
+  @keyframes charmHome {
+    0% { scale: 1.12; } 45% { scale: .84; } 100% { scale: 1; }
+  }
+  .charm.returning { animation: charmHome .26s cubic-bezier(.34, 1.4, .64, 1); }
+
+  /* --- 造型总览：真人原图 + 像素小人 ---
+     照片占满整格，像素小人压在右下角、探出去一点，读起来就是「小人站在照片旁边」。
+     96 套现在全都配到原图了，:not(.has-real) 那套（虚线空框 + 居中小人）留着兜底，
+     万一哪套没图也不会塌成一格空白。 */
+  .look-cell {
+    overflow: visible; padding: 6px 6px 5px; border-radius: 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .look-cell .lc-row {
+    position: relative; display: block; aspect-ratio: 1 / 1.08; border-radius: 8px;
+  }
+  .look-cell .lc-shot { position: absolute; inset: 0; }
+  .look-cell .lc-shot img {
+    display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%;
+    border-radius: 7px; border: 3px solid #fff;
+    box-shadow: 0 3px 8px rgba(107, 68, 54, .26);
+  }
+  .look-cell .lc-duo { position: absolute; right: -7px; bottom: 15%; width: 52%; max-width: 76px; }
+  .look-cell .lc-duo img { filter: drop-shadow(0 2px 4px rgba(107, 68, 54, .34)); }
+  .look-cell:not(.has-real) .lc-row {
+    background: linear-gradient(180deg, #fffaf6, #f8e6ea);
+    border: 1px dashed rgba(107, 68, 54, .24);
+  }
+  .look-cell:not(.has-real) .lc-duo {
+    right: 50%; bottom: 9%; transform: translateX(50%); width: 74%; max-width: 98px;
+  }
+  .look-cell .lc-tag {
+    font-family: "Gochi Hand", cursive; font-size: 9.5px; letter-spacing: .03em;
+    color: var(--ink-faint); text-align: center;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .look-cell.on .lc-tag { color: var(--pink-ink); }
+  @media (max-width: 700px) {
+    .look-cell .lc-duo { width: 50%; }
+    .look-cell .lc-tag { font-size: 8.5px; }
+  }
+  /* 窄屏：左边那一栏放不下，篮子和板子改成上下排 —— 篮子在板上方，
+     往下拖比从底下往上拖顺得多。篮子恢复成横排：左边篮子、右边一堆小物，
+     篮子跟标题顶对齐（底对齐的话，小物一多篮子会飘到半空里去）。 */
+  @media (max-width: 1000px) {
+    .photo-stage { grid-template-columns: minmax(0, 1fr); }
+    .charm-dock { flex-direction: row; align-items: flex-start; gap: clamp(10px, 2vw, 18px); }
+    .dock-basket { width: 88px; }
+    .dock-side { flex: 1 1 auto; }
+    .dock-title { text-align: left; margin-bottom: 2px; }
+    .dock-pile { justify-content: flex-start; }
+  }
+  @media (max-width: 620px) {
+    .dock-basket { width: 64px; }
+    .dock-pile { gap: 4px; }
+  }
+</style>
+
+</head>
+<body>
+
+<!-- ============ 手账外框 ============ -->
+<div class="pageframe" aria-hidden="true">
+  <i class="pf-t"></i><i class="pf-b"></i><i class="pf-l"></i><i class="pf-r"></i>
+  <i class="pf-stripes"></i><i class="pf-scallop"></i>
+  <i class="pf-nt pf-nt-t"></i><i class="pf-nt pf-nt-b"></i>
+  <i class="pf-nt pf-nt-l"></i><i class="pf-nt pf-nt-r"></i>
+</div>
+
+<!-- ============ 首页 ============ -->
+<section class="view on" id="v-home">
+  <div class="hearts" id="hearts"></div>
+  <div class="deco-layer" id="homeDeco"></div>
+  <div class="corner-lace bl" data-lace="blue" aria-hidden="true"></div>
+  <svg class="lace" viewBox="0 0 260 130" fill="none" aria-hidden="true"><path d="M46.0 0.0 A84.0 84.0 0 0 0 214.0 0.0 Z" fill="#dbe9f4"/><circle cx="46.0" cy="0.0" r="11.0" fill="#dbe9f4"/><circle cx="47.8" cy="17.5" r="11.0" fill="#dbe9f4"/><circle cx="53.3" cy="34.2" r="11.0" fill="#dbe9f4"/><circle cx="62.0" cy="49.4" r="11.0" fill="#dbe9f4"/><circle cx="73.8" cy="62.4" r="11.0" fill="#dbe9f4"/><circle cx="88.0" cy="72.7" r="11.0" fill="#dbe9f4"/><circle cx="104.0" cy="79.9" r="11.0" fill="#dbe9f4"/><circle cx="121.2" cy="83.5" r="11.0" fill="#dbe9f4"/><circle cx="138.8" cy="83.5" r="11.0" fill="#dbe9f4"/><circle cx="156.0" cy="79.9" r="11.0" fill="#dbe9f4"/><circle cx="172.0" cy="72.7" r="11.0" fill="#dbe9f4"/><circle cx="186.2" cy="62.4" r="11.0" fill="#dbe9f4"/><circle cx="198.0" cy="49.4" r="11.0" fill="#dbe9f4"/><circle cx="206.7" cy="34.2" r="11.0" fill="#dbe9f4"/><circle cx="212.2" cy="17.5" r="11.0" fill="#dbe9f4"/><circle cx="214.0" cy="0.0" r="11.0" fill="#dbe9f4"/><circle cx="74.6" cy="0.0" r="4.2" fill="#fdeef1"/><circle cx="76.8" cy="15.6" r="4.2" fill="#fdeef1"/><circle cx="83.4" cy="30.0" r="4.2" fill="#fdeef1"/><circle cx="93.7" cy="41.9" r="4.2" fill="#fdeef1"/><circle cx="107.0" cy="50.4" r="4.2" fill="#fdeef1"/><circle cx="122.1" cy="54.9" r="4.2" fill="#fdeef1"/><circle cx="137.9" cy="54.9" r="4.2" fill="#fdeef1"/><circle cx="153.0" cy="50.4" r="4.2" fill="#fdeef1"/><circle cx="166.3" cy="41.9" r="4.2" fill="#fdeef1"/><circle cx="176.6" cy="30.0" r="4.2" fill="#fdeef1"/><circle cx="183.2" cy="15.6" r="4.2" fill="#fdeef1"/><circle cx="185.4" cy="0.0" r="4.2" fill="#fdeef1"/><path d="M52.7 0.0 A77.3 77.3 0 0 0 207.3 0.0" fill="none" stroke="#bcd6ea" stroke-width="1.3"/><path d="M94.7 0.0 A35.3 35.3 0 0 0 165.3 0.0" fill="none" stroke="#bcd6ea" stroke-width="1.2" stroke-dasharray="3 4"/><line x1="94.1" y1="11.7" x2="59.7" y2="22.8" stroke="#bcd6ea" stroke-width="1"/><line x1="99.4" y1="22.2" x2="70.2" y2="43.4" stroke="#bcd6ea" stroke-width="1"/><line x1="107.8" y1="30.6" x2="86.6" y2="59.8" stroke="#bcd6ea" stroke-width="1"/><line x1="118.3" y1="35.9" x2="107.2" y2="70.3" stroke="#bcd6ea" stroke-width="1"/><line x1="130.0" y1="37.8" x2="130.0" y2="73.9" stroke="#bcd6ea" stroke-width="1"/><line x1="141.7" y1="35.9" x2="152.8" y2="70.3" stroke="#bcd6ea" stroke-width="1"/><line x1="152.2" y1="30.6" x2="173.4" y2="59.8" stroke="#bcd6ea" stroke-width="1"/><line x1="160.6" y1="22.2" x2="189.8" y2="43.4" stroke="#bcd6ea" stroke-width="1"/><line x1="165.9" y1="11.7" x2="200.3" y2="22.8" stroke="#bcd6ea" stroke-width="1"/></svg>
+  <div class="lace-bow" id="laceBow"></div>
+  <div class="hero-left">
+    <h1 class="sticker"><span>A Gift</span><span>for Jimin</span></h1>
+    <div class="hero-sub">1995 · 10 · 13 — HAPPY JIMIN DAY</div>
+    <button id="openBtn">Open the Gift ♡</button>
+    <div class="bar-wrap" id="barWrap"><div class="bar-fill" id="barFill"></div></div>
+    <div class="bar-tip" id="barTip">tap the button to open</div>
+  </div>
+  <div class="stage" id="stage">
+    <div class="floor"></div>
+    <div class="char-shadow"></div>
+    <div class="pose" id="pose"></div>
+    <div class="feet-doodle" aria-hidden="true">
+      <span style="left:25%;bottom:2%;color:#e6a3b6">❀</span>
+      <span style="left:75%;bottom:-4%;color:#a6c7dd">✿</span>
+      <span style="left:35%;bottom:7%;color:#e6a3b6">♡</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 板块菜单 ============ -->
+<section class="view" id="v-menu">
+  <div class="deco-layer" id="menuDeco"></div>
+  <div class="corner-lace bl" data-lace="blue" aria-hidden="true"></div>
+  <div class="corner-lace br" data-lace="pink" aria-hidden="true"></div>
+  <div class="menu-banner">
+    <div class="clip-row" id="menuClips" aria-hidden="true"></div>
+    <div class="menu-head">
+      <h2 class="sticker"><span>Pick a Room</span></h2>
+      <p>click a card to step inside ♡</p>
+    </div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
+</section>
+
+<!-- ============ 巡演造型 ============ -->
+<section class="view" id="v-tour">
+  <div class="deco-layer" id="tourDeco"></div>
+  <div class="corner-lace bl" data-lace="pink" aria-hidden="true"></div>
+  <div class="corner-lace br" data-lace="blue" aria-hidden="true"></div>
+  <div class="vbar">
+    <button class="back" data-back>← back</button>
+    <span class="vtitle">Dress-Up · ARIRANG Tour</span>
+  </div>
+  <div class="tour-grid">
+    <div class="map-card">
+      <div class="clip-row" id="mapClips" aria-hidden="true"></div>
+      <div class="map-head">
+        <span class="map-title">BTS WORLD TOUR 'ARIRANG'</span>
+        <span class="map-sub" id="mapSub">2026</span>
+      </div>
+      <div class="map-canvas" id="mapCanvas">
+        <img class="worldmap" src="assets/world.svg" alt="world map">
+        <svg class="route-svg" viewBox="0 0 1010 666" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+      <div class="map-legend">
+        <span><i style="background:#6b4436"></i>flight</span>
+        <span><i style="background:#a6c7dd"></i>same region</span>
+        <span id="mapNote">— cities · — looks</span>
+      </div>
+    </div>
+    <div class="du-wrap">
+      <div class="du-row">
+        <button class="du-arrow" id="duPrev" aria-label="previous look">‹</button>
+        <div class="du-stage"><div class="halo"></div><img id="duImg" src="" alt="jimin stage look"></div>
+        <button class="du-arrow" id="duNext" aria-label="next look">›</button>
+      </div>
+      <div class="du-meta">
+        <div class="where" id="duWhere">—</div>
+        <div class="count" id="duCount">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 往下滑 = 全部 96 套造型总览，点一下直接换上 -->
+  <section class="look-section">
+    <div class="look-head">
+      <span class="look-title">All the Looks</span>
+      <span class="look-sub" id="lookSub">— OUTFITS · TAP TO WEAR</span>
+      <span class="look-hint">scroll ↓</span>
+    </div>
+    <div class="look-strip" id="lookStrip"></div>
+  </section>
+</section>
+
+<!-- ============ 照片墙 ============ -->
+<section class="view" id="v-photos">
+  <div class="deco-layer" id="photoDeco"></div>
+  <div class="corner-lace bl" data-lace="blue" aria-hidden="true"></div>
+  <div class="vbar">
+    <button class="back" data-back>← back</button>
+    <span class="vtitle">Photowall</span>
+  </div>
+  <div class="photo-stage">
+    <!-- 装饰篮：篮子里的 Y2K 小物 / 长尾夹可以拖到右边板子上。
+         桌面端是板子左边的一栏，窄屏堆到板子上方。 -->
+    <aside class="charm-dock">
+      <div class="dock-basket"><img src="assets/felt/basket.png" alt="" aria-hidden="true"></div>
+      <div class="dock-side">
+        <span class="dock-title">Charm Basket</span>
+        <div class="dock-pile" id="dockPile"></div>
+      </div>
+    </aside>
+    <div class="wall-wrap">
+      <div class="clip-row" id="clipRow" aria-hidden="true"></div>
+      <div class="clip-side l" id="clipSideL" aria-hidden="true"></div>
+      <div class="clip-side r" id="clipSideR" aria-hidden="true"></div>
+      <div id="photoField"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 专辑 ============ -->
+<section class="view" id="v-albums">
+  <div class="corner-lace bl" data-lace="pink" aria-hidden="true"></div>
+  <div class="vbar">
+    <button class="back" data-back>← back</button>
+    <span class="vtitle">His Albums</span>
+  </div>
+  <div class="album-block">
+    <div class="deco-layer" id="albumDecoA"></div>
+    <div class="covers" id="coversFace"></div>
+    <div class="album-info">
+      <h3>FACE</h3>
+      <div class="meta">2023 · Set Me Free Pt.2 / Like Crazy</div>
+      <div class="rule"></div>
+      <div class="album-grid" id="gridFace"></div>
+    </div>
+  </div>
+  <div class="album-block">
+    <div class="deco-layer" id="albumDecoB"></div>
+    <div class="covers" id="coversMuse"></div>
+    <div class="album-info">
+      <h3>MUSE</h3>
+      <div class="meta">2024 · Smeraldo Garden Marching Band / Who</div>
+      <div class="rule"></div>
+      <div class="album-grid" id="gridMuse"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Feed ============ -->
+<section class="view" id="v-feed">
+  <div class="deco-layer" id="feedDeco"></div>
+  <div class="corner-lace bl" data-lace="pink" aria-hidden="true"></div>
+  <div class="corner-lace tr below" data-lace="blue" aria-hidden="true"></div>
+  <div class="corner-lace br" data-lace="blue" aria-hidden="true"></div>
+  <div class="vbar">
+    <button class="back" data-back>← back</button>
+    <span class="vtitle">Jimin on Weverse</span>
+  </div>
+  <div class="phone-wrap">
+    <!-- 宽屏时手机左右两侧的手账旁白卡：纯装饰，窄屏自动隐藏 -->
+    <aside class="feed-side feed-side--l" aria-hidden="true">
+      <div class="side-note" style="--r:-3.2deg; --wr:-4deg">
+        <i class="washi"></i>
+        <b class="sn-k">오늘도 고마워</b>
+        <p>thank you for being born<br>in October, Jimin ♡</p>
+        <span class="sn-d">1995 · 10 · 13</span>
+      </div>
+      <div class="side-note" style="--r:2.4deg; --wr:3deg">
+        <i class="washi"></i>
+        <b class="sn-k">weverse notes</b>
+        <p>every post feels like<br>a letter written just for us.</p>
+        <span class="sn-d">SAVED BY PARKNUKI</span>
+      </div>
+      <div class="side-stat" style="--r:-1.6deg">
+        <span><b>96</b>looks</span>
+        <span><b>22</b>cities</span>
+        <span><b>1</b>&nbsp;person</span>
+      </div>
+    </aside>
+
+    <div class="phone">
+      <span class="notch"></span>
+      <div class="screen">
+        <div class="wvs-head">
+          <div class="wvs-top">
+            <span class="av">지</span>
+            <span class="who">지민 <em>jimin · Weverse</em></span>
+            <span class="vf" title="verified">✓</span>
+            <span class="cnt" id="wvsCount">—</span>
+          </div>
+          <div class="wvs-tabs">
+            <button class="wvs-tab on" data-tab="single">POSTS</button>
+            <button class="wvs-tab" data-tab="grid">GRID</button>
+            <button class="wvs-tab" data-tab="story">STORY</button>
+          </div>
+        </div>
+        <div class="wvs-panel on" id="panelSingle">
+          <div class="wvs-hl" id="wvsHl"></div>
+          <div id="feedList"></div>
+        </div>
+        <div class="wvs-panel" id="panelGrid"><div class="wvs-grid" id="feedGrid"></div></div>
+        <div class="wvs-panel" id="panelStory">
+          <div class="story" id="storyStage">
+            <div class="story-bg" id="storyBg"></div>
+            <div class="story-bars" id="storyBars"></div>
+            <div class="story-top">
+              <span class="sa">지</span><b>지민</b><span class="st">weverse</span>
+              <button class="story-x" id="storyX" aria-label="close">×</button>
+            </div>
+            <img id="storyImg" src="" alt="">
+            <div class="story-cap" id="storyCap"></div>
+            <div class="story-nav">
+              <i data-dir="-1" title="previous"></i><i data-dir="1" title="next"></i>
+            </div>
+            <button class="story-like" id="storyLike" aria-label="like">♡</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="feed-side feed-side--r" aria-hidden="true">
+      <div class="side-note" style="--r:3deg; --wr:4deg">
+        <i class="washi"></i>
+        <b class="sn-k">10 · 13</b>
+        <p>HAPPY JIMIN DAY<br>the whole world says it<br>at the same time.</p>
+        <span class="sn-d">SEOUL · 12:00 KST</span>
+      </div>
+      <div class="side-note" style="--r:-2.2deg; --wr:-3deg">
+        <i class="washi"></i>
+        <b class="sn-k">little playlist</b>
+        <p>Who · Like Crazy · Serendipity<br>Closer Than This · Smeraldo</p>
+        <span class="sn-d">PLAYED 1,000 TIMES</span>
+      </div>
+      <div class="side-stat" style="--r:1.8deg">
+        <span><b>10</b>years</span>
+        <span><b>∞</b>thanks</span>
+        <span><b>♡</b>always</span>
+      </div>
+    </aside>
+  </div>
+  <div class="phone-tip">scroll inside the phone · tap a photo to enlarge ♡</div>
+</section>
+
+<!-- ============ 留言 ============ -->
+<section class="view" id="v-messages">
+  <div class="deco-layer" id="msgDeco"></div>
+  <div class="corner-lace bl" data-lace="blue" aria-hidden="true"></div>
+  <div class="corner-lace br" data-lace="pink" aria-hidden="true"></div>
+  <div class="vbar">
+    <button class="back" data-back>← back</button>
+    <span class="vtitle">Letters for Jimin</span>
+  </div>
+  <div class="wrap-center">
+    <form class="msg-form" id="msgForm">
+      <input id="msgName" maxlength="20" placeholder="Your name" required>
+      <textarea id="msgText" maxlength="300" placeholder="Write a birthday letter to Jimin…" required></textarea>
+      <button type="submit">Send My Letter ♡</button>
+    </form>
+    <div class="msg-list" id="msgList"></div>
+
+    <div class="letter">
+      <div class="dear">Dear Jimin,</div>
+      <p>新的一岁，希望你睡饱觉、吃好吃的，自由的唱歌，跳舞，永远幸福吧，朴智旻。</p>
+      <div class="sign">— parknuki</div>
+    </div>
+
+    <div class="cake" aria-hidden="true">
+      <i class="flame"></i><i class="candle"></i><i class="top"></i><i class="cream"></i>
+      <i class="body"></i><i class="dot1"></i><i class="dot2"></i><i class="dot3"></i><i class="dot4"></i>
+      <i class="plate"></i>
+    </div>
+    <div class="hb">Happy Birthday, Jimin</div>
+    <div class="hb-sub">1995 · 10 · 13 — forever our autumn boy</div>
+  </div>
+</section>
+
+<!-- ============ 灯箱 ============ -->
+<div class="lb" id="lightbox" aria-hidden="true">
+  <img class="lb-img" id="lbImg" src="" alt="">
+  <button class="lb-close" id="lbClose" aria-label="close">×</button>
+  <button class="lb-prev" id="lbPrev" aria-label="previous">‹</button>
+  <button class="lb-next" id="lbNext" aria-label="next">›</button>
+  <div class="lb-count" id="lbCount"></div>
+</div>
+
+<div id="disc" title="play / pause">♪</div>
+<audio id="bgm" src="assets/promise.mp3" loop preload="auto"></audio>
+
+<script src="assets/data.js"></script>
+<script>
+const DATA = window.SITE_DATA || { looks: [], counts: {}, stickers: [], frames: [], cities: [], legs: [] };
+
+/* ============ 音乐 ============ */
+/* 注意：assets/promise.mp3 是版权歌曲，默认**不进 git 仓库**（见 .gitignore）。
+   本地放了就能播；线上没有这个文件时，唱片按钮会自己消失，不会留一个点了没反应的死按钮。
+   想让线上也有音乐：本地准备好 mp3 → 把 .gitignore 里那一行删掉 → 重新 push。 */
+const bgm = document.getElementById('bgm');
+const disc = document.getElementById('disc');
+bgm.volume = 0.85;
+let bgmBroken = false;
+
+bgm.addEventListener('error', () => {
+  bgmBroken = true;
+  disc.classList.remove('show', 'playing');
+});
+
+function playBgm() {
+  if (bgmBroken) return;
+  bgm.play().then(() => { disc.classList.add('show', 'playing'); disc.classList.remove('paused'); })
+          .catch(() => { disc.classList.add('show', 'paused'); disc.classList.remove('playing'); });
+}
+disc.addEventListener('click', () => {
+  if (bgmBroken) return;
+  if (bgm.paused) { bgm.play().then(() => { disc.classList.remove('paused'); disc.classList.add('playing'); }).catch(() => {}); }
+  else { bgm.pause(); disc.classList.add('paused'); disc.classList.remove('playing'); }
+});
+
+/* ============ 灯箱 ============ */
+const LB = { list: [], i: 0 };
+const lbEl = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbCount = document.getElementById('lbCount');
+function updateLb() {
+  if (!LB.list.length) return;
+  LB.i = (LB.i + LB.list.length) % LB.list.length;
+  lbImg.src = LB.list[LB.i];
+  lbCount.textContent = (LB.i + 1) + ' / ' + LB.list.length;
+  const many = LB.list.length > 1;
+  document.getElementById('lbPrev').style.display = many ? 'flex' : 'none';
+  document.getElementById('lbNext').style.display = many ? 'flex' : 'none';
+}
+function openLightbox(list, i) {
+  LB.list = list.slice(); LB.i = i || 0;
+  lbEl.classList.add('on'); lbEl.setAttribute('aria-hidden', 'false');
+  updateLb();
+}
+function closeLb() { lbEl.classList.remove('on'); lbEl.setAttribute('aria-hidden', 'true'); lbImg.src = ''; }
+document.getElementById('lbClose').addEventListener('click', closeLb);
+document.getElementById('lbPrev').addEventListener('click', () => { LB.i--; updateLb(); });
+document.getElementById('lbNext').addEventListener('click', () => { LB.i++; updateLb(); });
+lbEl.addEventListener('click', e => { if (e.target === lbEl) closeLb(); });
+
+/* ============ 视图切换 ============ */
+const VIEWS = ['v-home', 'v-menu', 'v-tour', 'v-photos', 'v-albums', 'v-feed', 'v-messages'];
+function go(id) {
+  VIEWS.forEach(v => document.getElementById(v).classList.toggle('on', v === id));
+  window.scrollTo(0, 0);
+  if (id !== 'v-feed' && window.__stopStory) window.__stopStory();   /* 离开动态页就停掉 story 自动播放 */
+  if (id === 'v-photos' && window.__photoLayout) {
+    requestAnimationFrame(() => requestAnimationFrame(window.__photoLayout));
+  }
+}
+document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => go('v-menu')));
+window.addEventListener('keydown', e => {
+  if (lbEl.classList.contains('on')) {
+    if (e.key === 'Escape') closeLb();
+    if (e.key === 'ArrowLeft') { LB.i--; updateLb(); }
+    if (e.key === 'ArrowRight') { LB.i++; updateLb(); }
+    return;
+  }
+  if (e.key !== 'Escape') return;
+  const cur = VIEWS.find(v => document.getElementById(v).classList.contains('on'));
+  if (cur && cur !== 'v-home' && cur !== 'v-menu') go('v-menu');
+  else if (cur === 'v-menu') go('v-home');
+});
+
+/* ============ 板块菜单（插画图标） ============ */
+const MENU = [
+  { id: 'v-tour',     ic: 'assets/icons/ic-tour.png',     nm: 'Tour Looks', sub: 'DRESS-UP' },
+  { id: 'v-photos',   ic: 'assets/icons/ic-photos.png',   nm: 'Photowall',  sub: 'MEMORIES' },
+  { id: 'v-albums',   ic: 'assets/icons/ic-albums.png',   nm: 'Albums',     sub: 'FACE · MUSE' },
+  { id: 'v-feed',     ic: 'assets/icons/ic-feed.png',     nm: 'Feed',       sub: 'ON WEVERSE' },
+  { id: 'v-messages', ic: 'assets/icons/ic-messages.png', nm: 'Messages',   sub: 'LETTERS' }
+];
+/* 板块页中间站着的像素小人：和首页共用同一张图集，也会跟着鼠标转头 */
+function buildMiniStage() {
+  const d = document.createElement('div');
+  d.className = 'stage mini';
+  d.innerHTML =
+    '<div class="floor"></div>' +
+    '<div class="char-shadow"></div>' +
+    '<div class="pose"></div>' +
+    '<div class="feet-doodle" aria-hidden="true">' +
+      '<span style="left:24%;bottom:1%;color:#d9a95f">✿</span>' +
+      '<span style="left:76%;bottom:-3%;color:#e6a3b6">❀</span>' +
+      '<span style="left:37%;bottom:6%;color:#e6a3b6">♡</span>' +
+    '</div>';
+  return d;
+}
+(function () {
+  const grid = document.getElementById('menuGrid');
+  /* 每张卡轻微歪一点 + 上下错开，像参考视频里手贴上去的展板 */
+  const TILT = [[-2.6, -8], [1.9, 12], [2.3, -5], [-1.8, 14], [1.3, 0]];
+  MENU.forEach((m, k) => {
+    if (k === 2) grid.appendChild(buildMiniStage());    /* 小人插在正中间 */
+    if (k === 4) {                                      /* Messages 换到第二行居中 */
+      const br = document.createElement('div');
+      br.className = 'menu-break';
+      grid.appendChild(br);
+    }
+    const b = document.createElement('button');
+    b.className = 'menu-card';
+    b.style.setProperty('--rot', TILT[k][0] + 'deg');
+    b.style.setProperty('--ty', TILT[k][1] + 'px');
+    b.style.setProperty('--d', (k * 0.07).toFixed(2) + 's');
+    b.innerHTML = '<img class="ic" src="' + m.ic + '" alt=""><div class="nm">' + m.nm +
+                  '</div><div class="sub">' + m.sub + '</div>';
+    b.addEventListener('click', () => go(m.id));
+    grid.appendChild(b);
+  });
+})();
+
+/* ============ 贴纸装饰（从 87 个零件里挑出干净的那几个，其余不用） ============ */
+const DECO_PICK = [20, 23, 25, 27, 29, 30, 36, 55, 58, 82, 83, 87];
+/* 20 金气球 / 23 红心 / 25 粉闪星 / 27 笑脸星 / 29 四叶草 / 30 紫气球
+   36 白蝴蝶结 / 55 粉星 / 58 蓝星 / 82 粉笑脸星 / 83 绿星爆 / 87 粉星爆 */
+function decoPool() {
+  return DECO_PICK.map(n => (DATA.stickers || [])[n - 1]).filter(Boolean);
+}
+/* 固定「格子」摆放，避免压住内容 */
+const SLOTS = {
+  tl: { l: 5.5, t: 12 }, tr: { l: 94.5, t: 13 }, ml: { l: 4.5, t: 52 },
+  mr: { l: 95, t: 52 }, bl: { l: 7, t: 87 }, br: { l: 93, t: 85 },
+  tc: { l: 49, t: 6 }, bc: { l: 52, t: 94 }
+};
+function decorate(host, plan) {
+  const pool = decoPool();
+  if (!pool.length) return;
+  plan.forEach(p => {
+    const s = pool[(p.p - 1) % pool.length];
+    const el = document.createElement('img');
+    el.className = 'deco' + (p.drag ? ' drag' : '');
+    el.src = s.img;
+    el.alt = '';
+    const sl = SLOTS[p.s || p.slot] || SLOTS.mr;
+    el.style.left = sl.l + '%';
+    el.style.top = sl.t + '%';
+    el.style.width = p.w + 'px';
+    el.style.rotate = (p.r || 0) + 'deg';
+    if (p.o) el.style.opacity = p.o;
+    el.style.transform = 'translate(-50%, -50%)';
+    host.appendChild(el);
+    if (p.drag) makeDraggable(el, host);
+  });
+}
+decorate(document.getElementById('homeDeco'), [
+  { s: 'tl', w: 60, r: -9, p: 3, o: .75 },   /* 粉色闪粉星星 */
+  { s: 'br', w: 48, r: 12, p: 6, o: .7 },    /* 紫色气球 */
+  { s: 'bl', w: 50, r: 6,  p: 7, o: .6  }    /* 白色蝴蝶结 */
+]);
+
+/* ============ 手绘小点缀（像参考网站的太阳 / 小花 / 闪） ============ */
+/* 所有手绘零件集中在这里：doodles()、clipRow()、四角蕾丝都从这里取 */
+const SVG = {
+    sun: '<svg class="doodle sun" viewBox="0 0 40 40" fill="none" stroke="#d9a95f" stroke-width="2.4" stroke-linecap="round"><circle cx="20" cy="20" r="7.2" fill="#f4e0bc" fill-opacity=".6"/><circle cx="20" cy="20" r="7.2"/><path d="M20 2.4v5.6M20 32v5.6M2.4 20h5.6M32 20h5.6M7.8 7.8l4 4M28.2 28.2l4 4M32.2 7.8l-4 4M11.8 28.2l-4 4"/></svg>',
+    spark: '<svg class="doodle" viewBox="0 0 30 30" fill="none" stroke="#9dc0e3" stroke-width="2" stroke-linecap="round"><path d="M15 4v22M4 15h22M8 8l14 14M22 8L8 22"/></svg>',
+    flower: '<svg class="doodle" viewBox="0 0 40 40" fill="none" stroke="#cd8298" stroke-width="2" stroke-linecap="round"><circle cx="20" cy="20" r="4.5"/><path d="M20 8c3 3 3 7 0 10-3-3-3-7 0-10zM20 32c-3-3-3-7 0-10 3 3 3 7 0 10zM8 20c3-3 7-3 10 0-3 3-7 3-10 0zM32 20c-3 3-7 3-10 0 3-3 7-3 10 0z"/></svg>',
+    wave: '<svg class="doodle" viewBox="0 0 60 30" fill="none" stroke="#c9d9ea" stroke-width="2" stroke-linecap="round"><path d="M4 20c8 0 8-10 16-10s8 10 16 10 8-10 20-10"/></svg>',
+    /* ---- 手账贴纸（对着「风格参考.jpg」加的） ---- */
+    bow: '<svg class="doodle" viewBox="0 0 62 44" fill="none"><path d="M31 22C25 14 8 12 6 20c-2 8 11 14 25 2z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.6"/><path d="M31 22c6-8 23-10 25-2 2 8-11 14-25 2z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.6"/><path d="M31 22l-7 18M31 22l7 18" stroke="#bf7488" stroke-width="2.4" stroke-linecap="round"/><circle cx="31" cy="22" r="4.4" fill="#f7dee4" stroke="#bf7488" stroke-width="1.6"/></svg>',
+    button: '<svg class="doodle" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="16" fill="#a6c7dd" stroke="#7fa8c4" stroke-width="2"/><circle cx="20" cy="20" r="12.4" fill="none" stroke="#ffffff" stroke-width="1.3" stroke-dasharray="2 3"/><circle cx="16" cy="16" r="2.4" fill="#5f4234"/><circle cx="24" cy="16" r="2.4" fill="#5f4234"/><circle cx="16" cy="24" r="2.4" fill="#5f4234"/><circle cx="24" cy="24" r="2.4" fill="#5f4234"/></svg>',
+    tape: '<svg class="doodle" viewBox="0 0 70 30"><rect x="2" y="6" width="66" height="18" rx="1.5" fill="#cfe1f0"/><path d="M10 6 L4 24 M22 6 L16 24 M34 6 L28 24 M46 6 L40 24 M58 6 L52 24 M70 6 L64 24" stroke="#ffffff" stroke-width="2.8" opacity=".62"/><path d="M2 6 v18 M68 6 v18" stroke="#a6c7dd" stroke-width="1.3" stroke-dasharray="3 2"/></svg>',
+    star: '<svg class="doodle" viewBox="0 0 40 40" fill="none"><path d="M20 4.5l4.7 10.4 11.3 1.6-8.2 7.7 2 11.3L20 29.7l-9.8 5.8 2-11.3-8.2-7.7 11.3-1.6z" fill="#f7dee4" stroke="#bf7488" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+    bear: '<svg class="doodle" viewBox="0 0 56 56" fill="none"><circle cx="13" cy="15" r="7" fill="#8d6a58"/><circle cx="43" cy="15" r="7" fill="#8d6a58"/><circle cx="13" cy="15" r="3.2" fill="#c8a493"/><circle cx="43" cy="15" r="3.2" fill="#c8a493"/><ellipse cx="28" cy="32" rx="17" ry="16" fill="#8d6a58"/><ellipse cx="28" cy="37.5" rx="9.6" ry="8" fill="#e8d3c3"/><circle cx="22" cy="27.5" r="2.1" fill="#3d2a22"/><circle cx="34" cy="27.5" r="2.1" fill="#3d2a22"/><ellipse cx="28" cy="34" rx="3" ry="2.3" fill="#3d2a22"/><path d="M24 39c1.4 1.6 6.6 1.6 8 0" stroke="#3d2a22" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>',
+    curl: '<svg class="doodle" viewBox="0 0 140 34" fill="none" stroke="#b48a76" stroke-width="2.1" stroke-linecap="round"><path d="M2 24 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0"/><path d="M2 24 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0 c 0 -13 15 -13 15 0" transform="translate(0,7)" opacity=".45" stroke-width="1.6"/></svg>',
+    env: '<svg class="doodle" viewBox="0 0 60 42" fill="none"><rect x="3" y="6" width="54" height="31" rx="3" fill="#f7dee4" stroke="#bf7488" stroke-width="1.6"/><path d="M4.5 8L30 25 55.5 8" stroke="#bf7488" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>',
+
+    /* ---- 纽扣（对着「纽扣.jpg」画的：树脂质感 + 高光 + 四孔 / 星形 / 花形 / 心形） ---- */
+    btnB: '<svg class="doodle" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" fill="#6b4436"/><circle cx="22" cy="22" r="20" fill="none" stroke="#452a1f" stroke-width="1.1"/><circle cx="22" cy="22" r="14" fill="none" stroke="#c8a493" stroke-width="1.2" stroke-dasharray="2 2.8"/><circle cx="17" cy="17" r="2.3" fill="#38200f"/><circle cx="27" cy="17" r="2.3" fill="#38200f"/><circle cx="17" cy="27" r="2.3" fill="#38200f"/><circle cx="27" cy="27" r="2.3" fill="#38200f"/><path d="M8.8 14.6A15.4 15.4 0 0 1 20 6.6" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".2"/></svg>',
+    btnP: '<svg class="doodle" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" fill="#e6a3b6"/><circle cx="22" cy="22" r="20" fill="none" stroke="#c07f94" stroke-width="1.1"/><circle cx="22" cy="22" r="14" fill="none" stroke="#fffdf8" stroke-width="1.2" stroke-dasharray="2 2.8"/><circle cx="17" cy="17" r="2.3" fill="#7d4a3a"/><circle cx="27" cy="17" r="2.3" fill="#7d4a3a"/><circle cx="17" cy="27" r="2.3" fill="#7d4a3a"/><circle cx="27" cy="27" r="2.3" fill="#7d4a3a"/><path d="M8.8 14.6A15.4 15.4 0 0 1 20 6.6" stroke="#fff" stroke-width="2.8" stroke-linecap="round" opacity=".34"/></svg>',
+    btnC: '<svg class="doodle" viewBox="0 0 44 44" fill="none"><circle cx="22" cy="22" r="20" fill="#f6ead8"/><circle cx="22" cy="22" r="20" fill="none" stroke="#cbb79a" stroke-width="1.1"/><circle cx="22" cy="22" r="14" fill="none" stroke="#fffdf8" stroke-width="1.2" stroke-dasharray="2 2.8"/><circle cx="17" cy="17" r="2.3" fill="#b09a7d"/><circle cx="27" cy="17" r="2.3" fill="#b09a7d"/><circle cx="17" cy="27" r="2.3" fill="#b09a7d"/><circle cx="27" cy="27" r="2.3" fill="#b09a7d"/><path d="M8.8 14.6A15.4 15.4 0 0 1 20 6.6" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".75"/></svg>',
+    btnStar: '<svg class="doodle" viewBox="0 0 48 48" fill="none"><path d="M24 5.4l5.9 12.9 14 1.9-10.2 9.6 2.5 13.9L24 36.9 11.8 43.7l2.5-13.9L4.1 20.2l14-1.9z" fill="#e6a3b6" stroke="#c07f94" stroke-width="1.9" stroke-linejoin="round"/><path d="M13 15.5l6 2.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".3"/><circle cx="20.5" cy="22" r="2.1" fill="#7d4a3a"/><circle cx="27.5" cy="22" r="2.1" fill="#7d4a3a"/></svg>',
+    btnFlower: '<svg class="doodle" viewBox="0 0 48 48" fill="none"><g fill="#f6ead8" stroke="#cbb79a" stroke-width="1.5"><circle cx="24" cy="12" r="7.6"/><circle cx="35.4" cy="20.3" r="7.6"/><circle cx="31.1" cy="33.4" r="7.6"/><circle cx="16.9" cy="33.4" r="7.6"/><circle cx="12.6" cy="20.3" r="7.6"/></g><circle cx="24" cy="24" r="7.6" fill="#fffdf8" stroke="#cbb79a" stroke-width="1.5"/><circle cx="21.3" cy="24" r="2" fill="#b09a7d"/><circle cx="26.7" cy="24" r="2" fill="#b09a7d"/></svg>',
+    btnHeart: '<svg class="doodle" viewBox="0 0 48 44" fill="none"><path d="M24 40S3 27.6 3 15.2C3 8.4 8.1 3 14.1 3c4.5 0 8.3 2.7 9.9 6.6C25.6 5.7 29.4 3 33.9 3 39.9 3 45 8.4 45 15.2 45 27.6 24 40 24 40z" fill="#e6a3b6" stroke="#c07f94" stroke-width="1.9" stroke-linejoin="round"/><path d="M12 10.5c1.8-1 4-1 5.4.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".32"/><circle cx="20" cy="18" r="2" fill="#7d4a3a"/><circle cx="28" cy="18" r="2" fill="#7d4a3a"/><circle cx="20" cy="25" r="2" fill="#7d4a3a"/><circle cx="28" cy="25" r="2" fill="#7d4a3a"/></svg>',
+
+    /* ---- 手帐夹（对着「手帐夹.jpg」画的） ---- */
+    clipMetal: '<svg class="doodle" viewBox="0 0 96 88" fill="none"><rect x="4" y="74" width="88" height="12" rx="3" fill="#b0b6bd"/><rect x="6" y="74" width="84" height="3.4" rx="1.7" fill="#878d94"/><path d="M26 74V42c0-14 9-23 22-23s22 9 22 23v32z" fill="#d3d9df" stroke="#99a0a7" stroke-width="1.4"/><path d="M32.5 72V44.5" stroke="#eef1f4" stroke-width="2.4" stroke-linecap="round" opacity=".85"/><circle cx="48" cy="34" r="7.4" fill="#fdf7ef" stroke="#99a0a7" stroke-width="1.4"/><circle cx="23" cy="70" r="3.6" fill="#8f959c"/><circle cx="73" cy="70" r="3.6" fill="#8f959c"/></svg>',
+    clipCream: '<svg class="doodle" viewBox="0 0 96 88" fill="none"><rect x="4" y="74" width="88" height="12" rx="3" fill="#f2e7d6"/><rect x="6" y="74" width="84" height="3.4" rx="1.7" fill="#dccbb0"/><path d="M26 74V42c0-14 9-23 22-23s22 9 22 23v32z" fill="#fbf4e8" stroke="#dccbb0" stroke-width="1.4"/><path d="M32.5 72V44.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".9"/><circle cx="48" cy="34" r="7.4" fill="#fffdf8" stroke="#dccbb0" stroke-width="1.4"/><circle cx="23" cy="70" r="3.6" fill="#e2d3bb"/><circle cx="73" cy="70" r="3.6" fill="#e2d3bb"/></svg>',
+
+    /* ---- 蕾丝餐垫（Python 按半圆 + 外圈蕾丝球 + 镂空孔算出来的） ---- */
+    lacePink: '<svg class="doodle" viewBox="0 0 140 78" fill="none"><path d="M10.0 0.0 A60.0 60.0 0 0 0 130.0 0.0 Z" fill="#fbd5e2"/><circle cx="10.0" cy="0.0" r="8.5" fill="#fbd5e2"/><circle cx="12.0" cy="15.5" r="8.5" fill="#fbd5e2"/><circle cx="18.0" cy="30.0" r="8.5" fill="#fbd5e2"/><circle cx="27.6" cy="42.4" r="8.5" fill="#fbd5e2"/><circle cx="40.0" cy="52.0" r="8.5" fill="#fbd5e2"/><circle cx="54.5" cy="58.0" r="8.5" fill="#fbd5e2"/><circle cx="70.0" cy="60.0" r="8.5" fill="#fbd5e2"/><circle cx="85.5" cy="58.0" r="8.5" fill="#fbd5e2"/><circle cx="100.0" cy="52.0" r="8.5" fill="#fbd5e2"/><circle cx="112.4" cy="42.4" r="8.5" fill="#fbd5e2"/><circle cx="122.0" cy="30.0" r="8.5" fill="#fbd5e2"/><circle cx="128.0" cy="15.5" r="8.5" fill="#fbd5e2"/><circle cx="130.0" cy="0.0" r="8.5" fill="#fbd5e2"/><circle cx="30.7" cy="5.2" r="3.4" fill="#fffdf8"/><circle cx="33.4" cy="15.2" r="3.4" fill="#fffdf8"/><circle cx="38.6" cy="24.1" r="3.4" fill="#fffdf8"/><circle cx="45.9" cy="31.4" r="3.4" fill="#fffdf8"/><circle cx="54.8" cy="36.6" r="3.4" fill="#fffdf8"/><circle cx="64.8" cy="39.3" r="3.4" fill="#fffdf8"/><circle cx="75.2" cy="39.3" r="3.4" fill="#fffdf8"/><circle cx="85.2" cy="36.6" r="3.4" fill="#fffdf8"/><circle cx="94.1" cy="31.4" r="3.4" fill="#fffdf8"/><circle cx="101.4" cy="24.1" r="3.4" fill="#fffdf8"/><circle cx="106.6" cy="15.2" r="3.4" fill="#fffdf8"/><circle cx="109.3" cy="5.2" r="3.4" fill="#fffdf8"/><path d="M16.0 0.0 A54.0 54.0 0 0 0 124.0 0.0" fill="none" stroke="#e0a0b6" stroke-width="1.3"/><path d="M46.0 0.0 A24.0 24.0 0 0 0 94.0 0.0" fill="none" stroke="#e0a0b6" stroke-width="1.1" stroke-dasharray="3 4"/><line x1="44.3" y1="5.9" x2="19.7" y2="11.5" stroke="#e0a0b6" stroke-width="1"/><line x1="49.4" y1="16.5" x2="29.7" y2="32.2" stroke="#e0a0b6" stroke-width="1"/><line x1="58.5" y1="23.8" x2="47.6" y2="46.5" stroke="#e0a0b6" stroke-width="1"/><line x1="70.0" y1="26.4" x2="70.0" y2="51.6" stroke="#e0a0b6" stroke-width="1"/><line x1="81.5" y1="23.8" x2="92.4" y2="46.5" stroke="#e0a0b6" stroke-width="1"/><line x1="90.6" y1="16.5" x2="110.3" y2="32.2" stroke="#e0a0b6" stroke-width="1"/><line x1="95.7" y1="5.9" x2="120.3" y2="11.5" stroke="#e0a0b6" stroke-width="1"/></svg>',
+    laceBlue: '<svg class="doodle" viewBox="0 0 116 62" fill="none"><path d="M8.0 0.0 A50.0 50.0 0 0 0 108.0 0.0 Z" fill="#dbe9f4"/><circle cx="8.0" cy="0.0" r="7.0" fill="#dbe9f4"/><circle cx="10.0" cy="14.1" r="7.0" fill="#dbe9f4"/><circle cx="15.9" cy="27.0" r="7.0" fill="#dbe9f4"/><circle cx="25.3" cy="37.8" r="7.0" fill="#dbe9f4"/><circle cx="37.2" cy="45.5" r="7.0" fill="#dbe9f4"/><circle cx="50.9" cy="49.5" r="7.0" fill="#dbe9f4"/><circle cx="65.1" cy="49.5" r="7.0" fill="#dbe9f4"/><circle cx="78.8" cy="45.5" r="7.0" fill="#dbe9f4"/><circle cx="90.7" cy="37.8" r="7.0" fill="#dbe9f4"/><circle cx="100.1" cy="27.0" r="7.0" fill="#dbe9f4"/><circle cx="106.0" cy="14.1" r="7.0" fill="#dbe9f4"/><circle cx="108.0" cy="0.0" r="7.0" fill="#dbe9f4"/><circle cx="24.3" cy="4.8" r="2.9" fill="#fdeef1"/><circle cx="27.1" cy="14.1" r="2.9" fill="#fdeef1"/><circle cx="32.3" cy="22.3" r="2.9" fill="#fdeef1"/><circle cx="39.6" cy="28.6" r="2.9" fill="#fdeef1"/><circle cx="48.4" cy="32.6" r="2.9" fill="#fdeef1"/><circle cx="58.0" cy="34.0" r="2.9" fill="#fdeef1"/><circle cx="67.6" cy="32.6" r="2.9" fill="#fdeef1"/><circle cx="76.4" cy="28.6" r="2.9" fill="#fdeef1"/><circle cx="83.7" cy="22.3" r="2.9" fill="#fdeef1"/><circle cx="88.9" cy="14.1" r="2.9" fill="#fdeef1"/><circle cx="91.7" cy="4.8" r="2.9" fill="#fdeef1"/><path d="M13.0 0.0 A45.0 45.0 0 0 0 103.0 0.0" fill="none" stroke="#9dc0e3" stroke-width="1.3"/><path d="M38.0 0.0 A20.0 20.0 0 0 0 78.0 0.0" fill="none" stroke="#9dc0e3" stroke-width="1.1" stroke-dasharray="3 4"/><line x1="36.6" y1="4.9" x2="16.1" y2="9.6" stroke="#9dc0e3" stroke-width="1"/><line x1="40.8" y1="13.7" x2="24.4" y2="26.8" stroke="#9dc0e3" stroke-width="1"/><line x1="48.5" y1="19.8" x2="39.3" y2="38.7" stroke="#9dc0e3" stroke-width="1"/><line x1="58.0" y1="22.0" x2="58.0" y2="43.0" stroke="#9dc0e3" stroke-width="1"/><line x1="67.5" y1="19.8" x2="76.7" y2="38.7" stroke="#9dc0e3" stroke-width="1"/><line x1="75.2" y1="13.7" x2="91.6" y2="26.8" stroke="#9dc0e3" stroke-width="1"/><line x1="79.4" y1="4.9" x2="99.9" y2="9.6" stroke="#9dc0e3" stroke-width="1"/></svg>',
+
+    /* ---- 参考图里那几种星星 / 小花 / 印章 / 波点虚线 ---- */
+    starOl: '<svg class="doodle" viewBox="0 0 40 40" fill="none"><path d="M20 4.5l4.7 10.4 11.3 1.6-8.2 7.7 2 11.3L20 29.7l-9.8 5.8 2-11.3-8.2-7.7 11.3-1.6z" fill="#fffdf8" stroke="#6b4436" stroke-width="1.7" stroke-linejoin="round"/></svg>',
+    starBr: '<svg class="doodle" viewBox="0 0 40 40" fill="none"><path d="M20 3.6l5.2 11.4 12.4 1.7-9 8.5 2.2 12.4L20 31.2l-10.8 6.4 2.2-12.4-9-8.5 12.4-1.7z" fill="#6b4436"/><circle cx="16.5" cy="18" r="1.2" fill="#c8a493"/><circle cx="24" cy="22" r="1.2" fill="#c8a493"/><circle cx="18.5" cy="25.5" r="1.2" fill="#c8a493"/></svg>',
+    flowerSm: '<svg class="doodle" viewBox="0 0 32 32" fill="none" stroke="#cfa2b0" stroke-width="1.5" stroke-linecap="round"><circle cx="16" cy="16" r="2.8"/><circle cx="16" cy="8.6" r="3.5"/><circle cx="22.6" cy="13.4" r="3.5"/><circle cx="20.1" cy="21.2" r="3.5"/><circle cx="11.9" cy="21.2" r="3.5"/><circle cx="9.4" cy="13.4" r="3.5"/></svg>',
+    squiggle: '<svg class="doodle" viewBox="0 0 120 22" fill="none" stroke="#b48a76" stroke-width="1.7" stroke-dasharray="2.4 3.2" stroke-linecap="round"><path d="M4 11 Q16 -1 28 11 T52 11 T76 11 T100 11 T116 11"/></svg>',
+    seal: '<svg class="doodle" viewBox="0 0 40 40" fill="none"><path d="M20 2l3.2 5.4 5.6-2.6-1 6 6 1-3.6 4.9 4.6 4.1-5.9 1.8 1.9 5.8-6.1-.9-.9 6.1-5.8-1.9L11 37.4l-1-6-6-1 3.6-4.9L3 21.4l5.9-1.8L7 13.8l6.1.9.9-6.1 5.8 1.9z" fill="#e6a3b6" stroke="#c07f94" stroke-width="1.1" stroke-linejoin="round"/><circle cx="20" cy="20" r="5.2" fill="#fffdf8"/></svg>',
+    bowBig: '<svg class="doodle" viewBox="0 0 90 64" fill="none"><path d="M44 30C36 17 13 13 9 21c-4 8 11 18 35 9z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.9"/><path d="M44 30c8-13 31-17 35-9 4 8-11 18-35 9z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.9"/><path d="M44 30C40 21 30 8 22 4M44 30c4-9 14-22 22-26" stroke="#bf7488" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M44 30L34 59M44 30l10 29" stroke="#bf7488" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="44" cy="30" rx="6.2" ry="5.6" fill="#f7dee4" stroke="#bf7488" stroke-width="1.9"/></svg>',
+
+    /* ---- 四角蕾丝（Python 算的四分之一圆扇形：外圈蕾丝球 + 镂空孔 + 放射线） ---- */
+    laceCornerPink: '<svg class="doodle" viewBox="0 0 60.0 60.0" fill="none"><path d="M0 0 L60.0 0 A60.0 60.0 0 0 1 0 60.0 Z" fill="#fbd5e2"/><circle cx="60.0" cy="0.0" r="8.52" fill="#fbd5e2"/><circle cx="59.5" cy="7.8" r="8.52" fill="#fbd5e2"/><circle cx="58.0" cy="15.5" r="8.52" fill="#fbd5e2"/><circle cx="55.4" cy="23.0" r="8.52" fill="#fbd5e2"/><circle cx="52.0" cy="30.0" r="8.52" fill="#fbd5e2"/><circle cx="47.6" cy="36.5" r="8.52" fill="#fbd5e2"/><circle cx="42.4" cy="42.4" r="8.52" fill="#fbd5e2"/><circle cx="36.5" cy="47.6" r="8.52" fill="#fbd5e2"/><circle cx="30.0" cy="52.0" r="8.52" fill="#fbd5e2"/><circle cx="23.0" cy="55.4" r="8.52" fill="#fbd5e2"/><circle cx="15.5" cy="58.0" r="8.52" fill="#fbd5e2"/><circle cx="7.8" cy="59.5" r="8.52" fill="#fbd5e2"/><circle cx="0.0" cy="60.0" r="8.52" fill="#fbd5e2"/><circle cx="48.0" cy="0.0" r="2.6999999999999997" fill="#fffdf8"/><circle cx="47.5" cy="6.8" r="2.6999999999999997" fill="#fffdf8"/><circle cx="46.1" cy="13.5" r="2.6999999999999997" fill="#fffdf8"/><circle cx="43.7" cy="19.9" r="2.6999999999999997" fill="#fffdf8"/><circle cx="40.4" cy="26.0" r="2.6999999999999997" fill="#fffdf8"/><circle cx="36.3" cy="31.4" r="2.6999999999999997" fill="#fffdf8"/><circle cx="31.4" cy="36.3" r="2.6999999999999997" fill="#fffdf8"/><circle cx="26.0" cy="40.4" r="2.6999999999999997" fill="#fffdf8"/><circle cx="19.9" cy="43.7" r="2.6999999999999997" fill="#fffdf8"/><circle cx="13.5" cy="46.1" r="2.6999999999999997" fill="#fffdf8"/><circle cx="6.8" cy="47.5" r="2.6999999999999997" fill="#fffdf8"/><circle cx="0.0" cy="48.0" r="2.6999999999999997" fill="#fffdf8"/><circle cx="34.2" cy="0.0" r="2.1599999999999997" fill="#fffdf8"/><circle cx="33.5" cy="6.7" r="2.1599999999999997" fill="#fffdf8"/><circle cx="31.6" cy="13.1" r="2.1599999999999997" fill="#fffdf8"/><circle cx="28.4" cy="19.0" r="2.1599999999999997" fill="#fffdf8"/><circle cx="24.2" cy="24.2" r="2.1599999999999997" fill="#fffdf8"/><circle cx="19.0" cy="28.4" r="2.1599999999999997" fill="#fffdf8"/><circle cx="13.1" cy="31.6" r="2.1599999999999997" fill="#fffdf8"/><circle cx="6.7" cy="33.5" r="2.1599999999999997" fill="#fffdf8"/><circle cx="0.0" cy="34.2" r="2.1599999999999997" fill="#fffdf8"/><circle cx="18.0" cy="0.0" r="1.5599999999999998" fill="#fffdf8"/><circle cx="16.6" cy="6.9" r="1.5599999999999998" fill="#fffdf8"/><circle cx="12.7" cy="12.7" r="1.5599999999999998" fill="#fffdf8"/><circle cx="6.9" cy="16.6" r="1.5599999999999998" fill="#fffdf8"/><circle cx="0.0" cy="18.0" r="1.5599999999999998" fill="#fffdf8"/><path d="M55.2 0 A55.2 55.2 0 0 1 0 55.2" fill="none" stroke="#e0a0b6" stroke-width="1.3"/><path d="M40.8 0 A40.8 40.8 0 0 1 0 40.8" fill="none" stroke="#e0a0b6" stroke-width="1.0" stroke-dasharray="3 3.4"/><path d="M24.0 0 A24.0 24.0 0 0 1 0 24.0" fill="none" stroke="#e0a0b6" stroke-width="0.9"/></svg>',
+    laceCornerBlue: '<svg class="doodle" viewBox="0 0 52.0 52.0" fill="none"><path d="M0 0 L52.0 0 A52.0 52.0 0 0 1 0 52.0 Z" fill="#dbe9f4"/><circle cx="52.0" cy="0.0" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="51.6" cy="6.8" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="50.2" cy="13.5" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="48.0" cy="19.9" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="45.0" cy="26.0" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="41.3" cy="31.7" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="36.8" cy="36.8" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="31.7" cy="41.3" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="26.0" cy="45.0" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="19.9" cy="48.0" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="13.5" cy="50.2" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="6.8" cy="51.6" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="0.0" cy="52.0" r="7.3839999999999995" fill="#dbe9f4"/><circle cx="41.6" cy="0.0" r="2.34" fill="#fdeef1"/><circle cx="41.2" cy="5.9" r="2.34" fill="#fdeef1"/><circle cx="39.9" cy="11.7" r="2.34" fill="#fdeef1"/><circle cx="37.8" cy="17.3" r="2.34" fill="#fdeef1"/><circle cx="35.0" cy="22.5" r="2.34" fill="#fdeef1"/><circle cx="31.4" cy="27.2" r="2.34" fill="#fdeef1"/><circle cx="27.2" cy="31.4" r="2.34" fill="#fdeef1"/><circle cx="22.5" cy="35.0" r="2.34" fill="#fdeef1"/><circle cx="17.3" cy="37.8" r="2.34" fill="#fdeef1"/><circle cx="11.7" cy="39.9" r="2.34" fill="#fdeef1"/><circle cx="5.9" cy="41.2" r="2.34" fill="#fdeef1"/><circle cx="0.0" cy="41.6" r="2.34" fill="#fdeef1"/><circle cx="29.6" cy="0.0" r="1.8719999999999999" fill="#fdeef1"/><circle cx="29.1" cy="5.8" r="1.8719999999999999" fill="#fdeef1"/><circle cx="27.4" cy="11.3" r="1.8719999999999999" fill="#fdeef1"/><circle cx="24.6" cy="16.5" r="1.8719999999999999" fill="#fdeef1"/><circle cx="21.0" cy="21.0" r="1.8719999999999999" fill="#fdeef1"/><circle cx="16.5" cy="24.6" r="1.8719999999999999" fill="#fdeef1"/><circle cx="11.3" cy="27.4" r="1.8719999999999999" fill="#fdeef1"/><circle cx="5.8" cy="29.1" r="1.8719999999999999" fill="#fdeef1"/><circle cx="0.0" cy="29.6" r="1.8719999999999999" fill="#fdeef1"/><circle cx="15.6" cy="0.0" r="1.3519999999999999" fill="#fdeef1"/><circle cx="14.4" cy="6.0" r="1.3519999999999999" fill="#fdeef1"/><circle cx="11.0" cy="11.0" r="1.3519999999999999" fill="#fdeef1"/><circle cx="6.0" cy="14.4" r="1.3519999999999999" fill="#fdeef1"/><circle cx="0.0" cy="15.6" r="1.3519999999999999" fill="#fdeef1"/><path d="M47.8 0 A47.8 47.8 0 0 1 0 47.8" fill="none" stroke="#9dc0e3" stroke-width="1.3"/><path d="M35.4 0 A35.4 35.4 0 0 1 0 35.4" fill="none" stroke="#9dc0e3" stroke-width="1.0" stroke-dasharray="3 3.4"/><path d="M20.8 0 A20.8 20.8 0 0 1 0 20.8" fill="none" stroke="#9dc0e3" stroke-width="0.9"/></svg>'
+};
+function doodles(host, plan) {
+  plan.forEach(p => {
+    const w = document.createElement('div');
+    w.innerHTML = SVG[p.k];
+    const el = w.firstChild;
+    el.style.left = p.l; el.style.top = p.t; el.style.width = p.w + 'px';
+    if (p.r != null) el.style.rotate = p.r + 'deg';
+    if (p.cls) el.className.baseVal += ' ' + p.cls;
+    host.appendChild(el);
+  });
+}
+/* 一排手帐夹：flex 平铺，不按百分比定位。
+   注意要把 .doodle 那个 class 摘掉 —— .doodle 是 position:absolute，
+   留着的话每个夹子都会塌到容器左上角叠成一坨。 */
+function clipRow(host, kinds, w) {
+  if (!host) return;
+  kinds.forEach((k, n) => {
+    const box = document.createElement('div');
+    box.innerHTML = SVG[k];
+    const el = box.firstChild;
+    el.setAttribute('class', 'clip');
+    el.style.width = (Array.isArray(w) ? w[n % w.length] : w) + 'px';
+    el.style.rotate = ((n % 2 ? 1 : -1) * (1.4 + (n % 3) * .7)).toFixed(1) + 'deg';
+    host.appendChild(el);
+  });
+}
+/* 四角蕾丝：给每个 [data-lace] 的角填上扇形，用 CSS 的 scale 镜像翻到四个角 */
+document.querySelectorAll('[data-lace]').forEach(el => {
+  el.innerHTML = SVG[el.dataset.lace === 'blue' ? 'laceCornerBlue' : 'laceCornerPink'];
+  const sv = el.firstChild;
+  sv.style.width = '100%'; sv.style.display = 'block';
+  sv.removeAttribute('class');
+});
+document.getElementById('laceBow').innerHTML = '<svg viewBox="0 0 62 44" fill="none" style="width:100%;display:block"><path d="M31 22C25 14 8 12 6 20c-2 8 11 14 25 2z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.6"/><path d="M31 22c6-8 23-10 25-2 2 8-11 14-25 2z" fill="#e6a3b6" stroke="#bf7488" stroke-width="1.6"/><path d="M31 22l-7 18M31 22l7 18" stroke="#bf7488" stroke-width="2.4" stroke-linecap="round"/><circle cx="31" cy="22" r="4.4" fill="#f7dee4" stroke="#bf7488" stroke-width="1.6"/></svg>';
+doodles(document.getElementById('homeDeco'), [
+  { k: 'tape',   l: '14%', t: '7%',  w: 84 },
+  { k: 'star',   l: '7%',  t: '16%', w: 38 },
+  { k: 'bow',    l: '86%', t: '7%',  w: 76 },
+  { k: 'button', l: '93%', t: '27%', w: 34 },
+  { k: 'sun',    l: '80%', t: '45%', w: 36 },
+  { k: 'env',    l: '13%', t: '80%', w: 68 },
+  { k: 'bear',   l: '89%', t: '74%', w: 56 },
+  { k: 'curl',   l: '30%', t: '87%', w: 128 },
+  { k: 'curl',   l: '75%', t: '91%', w: 100 }
+]);
+doodles(document.getElementById('menuDeco'), [
+  { k: 'bow',    l: '93%', t: '7%',  w: 66 },
+  { k: 'button', l: '83%', t: '15%', w: 30 },
+  { k: 'tape',   l: '5%',  t: '7%',  w: 76 },
+  { k: 'star',   l: '4%',  t: '20%', w: 34 },
+  { k: 'env',    l: '6%',  t: '88%', w: 62 },
+  { k: 'sun',    l: '94%', t: '84%', w: 32 },
+  { k: 'curl',   l: '22%', t: '87%', w: 118 },
+  { k: 'curl',   l: '70%', t: '91%', w: 96 }
+]);
+
+/* ============ v15：把每个视图的空白都填上东西 ============ */
+/* 首页：底部补几颗纽扣 + 一个小蝴蝶结，别让下缘空着 */
+doodles(document.getElementById('homeDeco'), [
+  { k: 'btnB',     l: '4%',  t: '68%', w: 30, r: -8, cls: 'solid' },
+  { k: 'btnP',     l: '8%',  t: '76%', w: 26, r: 14, cls: 'solid' },
+  { k: 'btnFlower',l: '4.5%',t: '86%', w: 30, r: 5,  cls: 'solid' },
+  { k: 'btnStar',  l: '96%', t: '60%', w: 26, r: -10, cls: 'solid' },
+  { k: 'btnHeart', l: '92%', t: '90%', w: 26, r: 7,  cls: 'solid' },
+  { k: 'lacePink', l: '20%', t: '97%', w: 130, cls: 'soft' },
+  { k: 'laceBlue', l: '82%', t: '96%', w: 106, cls: 'soft' },
+  { k: 'starBr',   l: '68%', t: '12%', w: 20 },
+  { k: 'flowerSm', l: '30%', t: '9%',  w: 20 }
+]);
+
+/* 菜单页：展板是居中的，两侧留白靠贴纸和纽扣吃掉 */
+doodles(document.getElementById('menuDeco'), [
+  { k: 'bowBig',   l: '3.6%', t: '12%', w: 76, r: -9, cls: 'solid' },
+  { k: 'btnStar',  l: '1.8%', t: '22%', w: 26, r: 11, cls: 'solid' },
+  { k: 'btnP',     l: '5.4%', t: '30%', w: 24, r: -7, cls: 'solid' },
+  { k: 'flowerSm', l: '2.2%', t: '42%', w: 22 },
+  { k: 'btnFlower',l: '5.8%', t: '54%', w: 26, r: 8, cls: 'solid' },
+  { k: 'btnB',     l: '2%',   t: '66%', w: 26, r: -10, cls: 'solid' },
+  { k: 'btnC',     l: '6%',   t: '76%', w: 24, r: 6, cls: 'solid' },
+  { k: 'lacePink', l: '16%',  t: '96%', w: 124, cls: 'soft' },
+  { k: 'starBr',   l: '96%',  t: '10%', w: 20 },
+  { k: 'btnHeart', l: '96.2%',t: '19%', w: 26, r: 9, cls: 'solid' },
+  { k: 'btnStar',  l: '93%',  t: '27%', w: 24, r: -6, cls: 'solid' },
+  { k: 'sun',      l: '97%',  t: '38%', w: 30 },
+  { k: 'btnFlower',l: '93.4%',t: '50%', w: 24, r: 12, cls: 'solid' },
+  { k: 'btnP',     l: '96.6%',t: '62%', w: 26, r: -9, cls: 'solid' },
+  { k: 'squiggle', l: '88%',  t: '72%', w: 88, cls: 'soft' },
+  { k: 'btnB',     l: '94%',  t: '84%', w: 26, r: 8, cls: 'solid' },
+  { k: 'laceBlue', l: '84%',  t: '96%', w: 108, cls: 'soft' }
+]);
+
+
+/* 巡演页：这个视图很长（地图/换装 + 96 套总览），所以装饰分两段布置 ——
+   上段贴着地图和人物；下段沿着「造型总览」展板两侧的外边距一路往下排，
+   像手账页边的贴纸边饰。 */
+doodles(document.getElementById('tourDeco'), [
+  /* 上段 */
+  { k: 'sun',      l: '3.2%', t: '3.2%', w: 32 },
+  { k: 'bowBig',   l: '5.5%', t: '8%',   w: 78, r: -9, cls: 'solid' },
+  { k: 'btnP',     l: '2.2%', t: '13%',  w: 28, r: 12, cls: 'solid' },
+  { k: 'btnC',     l: '6.2%', t: '17%',  w: 24, r: -6, cls: 'solid' },
+  { k: 'squiggle', l: '2.6%', t: '22%',  w: 84, cls: 'soft' },
+  { k: 'starBr',   l: '96%',  t: '4.4%', w: 20 },
+  { k: 'spark',    l: '92.5%', t: '9.5%', w: 26 },
+  { k: 'btnStar',  l: '96.4%', t: '14%', w: 24, r: 8, cls: 'solid' },
+  { k: 'flowerSm', l: '90.5%', t: '19%', w: 22 },
+  { k: 'btnHeart', l: '96%',  t: '24%',  w: 26, r: -10, cls: 'solid' },
+  /* 下段：沿总览展板的左右外边距往下 */
+  { k: 'btnB',     l: '3.4%', t: '38%',  w: 26, r: -12, cls: 'solid' },
+  { k: 'squiggle', l: '86%',  t: '42%',  w: 88, cls: 'soft' },
+  { k: 'flowerSm', l: '95.6%', t: '46%', w: 22 },
+  { k: 'btnFlower',l: '4.4%', t: '52%',  w: 26, r: 6,  cls: 'solid' },
+  { k: 'btnC',     l: '94%',  t: '60%',  w: 24, r: 9,  cls: 'solid' },
+  { k: 'starOl',   l: '2.6%', t: '67%',  w: 22 },
+  { k: 'btnHeart', l: '95.8%', t: '74%', w: 24, r: -7, cls: 'solid' },
+  { k: 'btnStar',  l: '4.6%', t: '81%',  w: 24, r: 11, cls: 'solid' },
+  { k: 'flowerSm', l: '93.6%', t: '88%', w: 22 },
+  { k: 'starBr',   l: '2.8%', t: '94%',  w: 20 }
+]);
+
+/* 照片墙：面板四周撒一点，剩下的靠夹子撑 */
+doodles(document.getElementById('photoDeco'), [
+  { k: 'bowBig',   l: '97%', t: '13%', w: 76, r: 11, cls: 'solid' },
+  { k: 'btnC',     l: '2%',  t: '24%', w: 28, r: 9,  cls: 'solid' },
+  { k: 'btnStar',  l: '5%',  t: '31%', w: 24, r: -7, cls: 'solid' },
+  { k: 'tape',     l: '30%', t: '3%',  w: 84, cls: 'soft tape2' },
+  { k: 'spark',    l: '68%', t: '5.4%', w: 24 },
+  { k: 'btnFlower',l: '40%', t: '3.4%', w: 26, r: 6, cls: 'solid' },
+  { k: 'curl',     l: '86%', t: '94%', w: 104, cls: 'soft' }
+]);
+
+/* 专辑页：装饰必须放进 .album-block 内部（外面那层会被满宽的奶油纸页盖住）。
+   封面列在封面下方是空的（FACE 块空 992 里的下半段，MUSE 块空 1538 的后半段），
+   所以贴纸沿着左栏往下排一列，正好把那一大片空白吃掉。 */
+doodles(document.getElementById('albumDecoA'), [
+  { k: 'bowBig',   l: '12%',  t: '38%', w: 68, r: -8, cls: 'solid' },
+  { k: 'flowerSm', l: '5.6%', t: '44%', w: 20 },
+  { k: 'btnP',     l: '20%',  t: '49%', w: 26, r: 11, cls: 'solid' },
+  { k: 'starBr',   l: '8%',   t: '56%', w: 20 },
+  { k: 'squiggle', l: '6%',   t: '63%', w: 82, cls: 'soft' },
+  { k: 'btnB',     l: '11.5%',t: '70%', w: 26, r: -9, cls: 'solid' },
+  { k: 'btnStar',  l: '21%',  t: '76%', w: 24, r: 7,  cls: 'solid' },
+  { k: 'btnFlower',l: '15%',  t: '85%', w: 24, r: -6, cls: 'solid' },
+  { k: 'starOl',   l: '6.5%', t: '92%', w: 20 }
+]);
+doodles(document.getElementById('albumDecoB'), [
+  /* MUSE 块的左栏被两张封面（含 sticky）占满，没有整块空白，
+     所以这里只在最外侧那条 50px 的页边距里点几个小东西当边饰。 */
+  { k: 'starBr',   l: '1.8%', t: '10%', w: 18 },
+  { k: 'btnP',     l: '2.2%', t: '24%', w: 22, r: 9,  cls: 'solid' },
+  { k: 'flowerSm', l: '1.7%', t: '38%', w: 18 },
+  { k: 'btnC',     l: '2.2%', t: '52%', w: 22, r: -7, cls: 'solid' },
+  { k: 'starOl',   l: '1.8%', t: '66%', w: 18 },
+  { k: 'btnStar',  l: '2.2%', t: '80%', w: 22, r: 8,  cls: 'solid' },
+  { k: 'starBr',   l: '1.8%', t: '93%', w: 18 },
+  { k: 'flowerSm', l: '96.6%',t: '18%', w: 18 },
+  { k: 'btnHeart', l: '96.2%',t: '44%', w: 22, r: -8, cls: 'solid' },
+  { k: 'btnFlower',l: '96.4%',t: '72%', w: 22, r: 7,  cls: 'solid' }
+]);
+
+/* Feed：手机两侧的外侧空档（旁白卡在中间，装饰贴最外面两列） */
+doodles(document.getElementById('feedDeco'), [
+  { k: 'bowBig',   l: '20%', t: '9.5%', w: 68, r: -7, cls: 'solid' },
+  { k: 'btnB',     l: '4%',  t: '22%',  w: 28, r: 10, cls: 'solid' },
+  { k: 'btnP',     l: '7.4%',t: '29%',  w: 24, r: -8, cls: 'solid' },
+  { k: 'btnC',     l: '3%',  t: '40%',  w: 24, r: 5,  cls: 'solid' },
+  { k: 'flowerSm', l: '8.6%',t: '52%',  w: 22 },
+  { k: 'btnStar',  l: '4.4%',t: '66%',  w: 24, r: -10, cls: 'solid' },
+  { k: 'btnFlower',l: '8%',  t: '78%',  w: 26, r: 8,  cls: 'solid' },
+  { k: 'starBr',   l: '2.6%',t: '88%',  w: 20 },
+  { k: 'starBr',   l: '80%', t: '10%',  w: 20 },
+  { k: 'btnHeart', l: '95%', t: '20%',  w: 26, r: 9,  cls: 'solid' },
+  { k: 'btnStar',  l: '91.5%', t: '28%', w: 24, r: -6, cls: 'solid' },
+  { k: 'sun',      l: '96.5%', t: '38%', w: 30 },
+  { k: 'btnFlower',l: '92%', t: '50%',  w: 24, r: 12, cls: 'solid' },
+  { k: 'btnB',     l: '96%', t: '62%',  w: 26, r: -9, cls: 'solid' },
+  { k: 'squiggle', l: '87%', t: '72%',  w: 88, cls: 'soft' },
+  { k: 'btnP',     l: '93%', t: '82%',  w: 24, r: 7,  cls: 'solid' }
+]);
+
+/* 留言页 */
+doodles(document.getElementById('msgDeco'), [
+  { k: 'bowBig',   l: '4%',  t: '14%', w: 74, r: -10, cls: 'solid' },
+  { k: 'btnP',     l: '1.8%',t: '24%', w: 26, r: 8,  cls: 'solid' },
+  { k: 'env',      l: '3.4%',t: '33%', w: 54, cls: 'solid' },
+  { k: 'btnC',     l: '7.4%',t: '44%', w: 24, r: -6, cls: 'solid' },
+  { k: 'btnHeart', l: '3%',  t: '56%', w: 26, r: 11, cls: 'solid' },
+  { k: 'curl',     l: '12%', t: '94%', w: 104, cls: 'soft' },
+  { k: 'starBr',   l: '96%', t: '12%', w: 20 },
+  { k: 'btnStar',  l: '95.5%',t: '22%', w: 24, r: -8, cls: 'solid' },
+  { k: 'flowerSm', l: '92%', t: '34%', w: 22 },
+  { k: 'btnFlower',l: '96.4%',t: '46%', w: 26, r: 7,  cls: 'solid' },
+  { k: 'spark',    l: '93%', t: '60%', w: 24 },
+  { k: 'btnB',     l: '96%', t: '72%', w: 26, r: 10, cls: 'solid' },
+  { k: 'lacePink', l: '86%', t: '95%', w: 118, cls: 'soft' }
+]);
+
+/* 手帐夹：把「面板」夹进本子里 —— 照片墙 / 菜单展板 / 地图卡 */
+clipRow(document.getElementById('clipRow'),   ['clipMetal', 'clipCream', 'clipMetal', 'clipCream', 'clipMetal'], [58, 46, 62, 46, 58]);
+clipRow(document.getElementById('clipSideL'), ['clipCream'], 50);
+clipRow(document.getElementById('clipSideR'), ['clipMetal'], 50);
+clipRow(document.getElementById('menuClips'), ['clipCream', 'clipMetal', 'clipCream', 'clipMetal'], 50);
+clipRow(document.getElementById('mapClips'),  ['clipMetal', 'clipCream', 'clipMetal'], 44);
+
+/* ============ 点下去那一下的「咔哒」：所有按钮统一加 .tapped ============ */
+(function () {
+  const SEL = '#openBtn, .back, .du-arrow, .wvs-tab, .look-cell, .lb button, ' +
+              '.story-x, .story-like, .story-nav i, .menu-card, #disc, .msg-form button';
+  document.addEventListener('pointerdown', e => {
+    const el = e.target.closest(SEL);
+    if (!el) return;
+    el.classList.remove('tapped');
+    void el.offsetWidth;                 /* 强制重排，让同名动画能重播 */
+    el.classList.add('tapped');
+    el.addEventListener('animationend', () => el.classList.remove('tapped'), { once: true });
+  }, { passive: true });
+})();
+
+/* ============ 标题：逐字上色 ============ */
+(function () {
+  /* 用固定散列而不是 Math.random，每次刷新歪斜角度都一样，不会跳 */
+  const rnd = n => { const x = Math.sin(n * 12.9898) * 43758.5453; return x - Math.floor(x); };
+  const lines = document.querySelectorAll('.hero-left h1 span, .menu-head h2 span');
+  let ci = 0, lastParent = null;      /* 色轮序号跨行连续，但每个标题重新从粉色开始 */
+  let ai = 0;                         /* 逐字蹦出来的延迟序号，同样每个标题归零 */
+  [].forEach.call(lines, (line, li) => {
+    if (line.parentElement !== lastParent) { ci = 0; ai = 0; lastParent = line.parentElement; }
+    const txt = line.textContent;
+    line.textContent = '';
+    for (let i = 0; i < txt.length; i++) {
+      const c = txt.charAt(i);
+      if (c === ' ') { line.appendChild(document.createTextNode(' ')); continue; }
+      const k = li * 31 + i;
+      const t = document.createElement('i');
+      t.className = 'ct p' + (ci % 4);      /* 四档纸片轮着贴 */
+      ci++;
+      t.textContent = c;
+      /* 逐字蹦出来的节奏：从 .14s 开始，每个字母推后 .045s */
+      t.style.setProperty('--ad', (0.14 + ai * 0.045).toFixed(3) + 's');
+      ai++;
+      /* 只歪一点点，歪多了显乱 */
+      t.style.setProperty('--r', (rnd(k + 2) * 2.6 - 1.3).toFixed(1) + 'deg');
+      t.style.setProperty('--y', (rnd(k + 3) * 2.6 - 1.3).toFixed(1) + 'px');
+      line.appendChild(t);
+    }
+  });
+})();
+
+/* ============ 小人舞台的缩放 ============ */
+/* 单元格 300x450，按固定档位放大（0.5 / 0.75 / 1 / 1.5），不随屏幕乱变，构图才稳定。
+   上限 1.5：再大小人就会压过标题。
+   像素渲染：只有「倍率 × 设备像素比」是整数时，nearest-neighbor 放大才不会一格大一格小；
+   否则退回平滑放大（略柔但均匀），比花掉的像素点好看。
+   可用高度：宽屏 88vh、窄屏 40vh（窄屏是上下排布，文字还要占地方）。 */
+(function () {
+  const st = document.getElementById('stage');      /* 只调首页那个大舞台，板块页的小人由 CSS 定尺寸 */
+  if (!st) return;
+  const pose = st.querySelector('.pose');
+  const CAND = [1.5, 1, 0.75, 0.5];
+  function fitStage() {
+    const dpr = Math.max(1, devicePixelRatio || 1);
+    const avail = innerHeight * (innerWidth <= 940 ? 0.40 : 0.88) * 1.08;
+    let k = CAND[CAND.length - 1];
+    for (const c of CAND) { if (450 * c <= avail) { k = c; break; } }
+    st.style.setProperty('--k', String(k));
+    if (pose) pose.classList.toggle('smooth', Math.abs(k * dpr - Math.round(k * dpr)) > 1e-6);
+  }
+  fitStage();
+  window.addEventListener('resize', fitStage);
+})();
+
+/* ============ 首页进度条 ============ */
+(function () {
+  const btn = document.getElementById('openBtn');
+  const wrap = document.getElementById('barWrap');
+  const fill = document.getElementById('barFill');
+  const tip = document.getElementById('barTip');
+  const hearts = document.getElementById('hearts');
+  /* 落花：外 span 下落，内 i 摇摆翻转。用负 delay 让一进页面就已经在飘 */
+  const PETALS = ['❀', '✿', '❁', '✾', '❋', '✽', '♡'];
+  /* 主调仍是粉，每 4 片混 1 片「做旧金」—— 保留一点暖色对比，但压到低饱和，不抢戏 */
+  const PINK = ['#e6a3b6', '#f0c0cc', '#d0798f', '#f7dee4', '#cd8298', '#eab6c4'];
+  const GOLD = ['#e9c88c', '#f2dcae', '#d9b06a'];
+  for (let i = 0; i < 24; i++) {
+    const s = document.createElement('span');
+    const p = document.createElement('i');
+    p.textContent = PETALS[i % PETALS.length];
+    p.style.color = (i % 4 === 1) ? GOLD[(i >> 2) % GOLD.length] : PINK[i % PINK.length];
+    s.appendChild(p);
+    s.style.left = (Math.random() * 98 + 1).toFixed(2) + '%';
+    s.style.fontSize = (13 + Math.random() * 18).toFixed(0) + 'px';
+    s.style.setProperty('--dur', (9 + Math.random() * 9).toFixed(2) + 's');
+    s.style.setProperty('--delay', (-Math.random() * 18).toFixed(2) + 's');
+    s.style.setProperty('--amp', (10 + Math.random() * 24).toFixed(0) + 'px');
+    s.style.setProperty('--sway', (2.6 + Math.random() * 2.6).toFixed(2) + 's');
+    s.style.setProperty('--op', (0.52 + Math.random() * 0.38).toFixed(2));
+    hearts.appendChild(s);
+  }
+  btn.addEventListener('click', () => {
+    btn.disabled = true;
+    wrap.classList.add('live');
+    playBgm();
+    const t0 = performance.now(), DUR = 1900;
+    (function step(t) {
+      const p = Math.min(1, (t - t0) / DUR);
+      fill.style.width = (p * 100).toFixed(1) + '%';
+      if (p < 1) {
+        tip.textContent = 'opening… ' + Math.round(p * 100) + '%';
+        requestAnimationFrame(step);
+      } else {
+        tip.textContent = 'welcome ♡';
+        setTimeout(() => go('v-menu'), 430);
+      }
+    })(t0);
+  });
+})();
+
+/* ============ 全向转头（oil-motion 风格：输入只记录，rAF 统一渲染） ============ */
+(function () {
+  const HN = 7, VN = 3, FRONT = 3;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  function damp(s, target, dt, maxV, SMOOTH) {
+    const omega = 2 / SMOOTH;
+    const x = omega * dt;
+    const decay = 1 / (1 + x + 0.48 * x * x + 0.235 * x * x * x);
+    const maxChange = maxV * SMOOTH;
+    let change = s.cur - target;
+    change = Math.max(-maxChange, Math.min(maxChange, change));
+    const limitedTarget = s.cur - change;
+    const temp = (s.vel + omega * change) * dt;
+    let nv = (s.vel - omega * temp) * decay;
+    let np = limitedTarget + (change + temp) * decay;
+    if ((target - s.cur > 0) === (np > target)) { np = target; nv = 0; }
+    s.vel = nv; s.cur = np;
+    return np;
+  }
+  const mk = v => ({ cur: v, vel: 0 });
+
+  /* 页面里有几个 .stage 就有几个小人（首页 1 个 + 板块页 1 个），共用同一份鼠标输入。
+     板块页那个跟上得慢一点，看起来才不像复制粘贴。 */
+  const actors = [].slice.call(document.querySelectorAll('.stage')).map((st, i) => {
+    const pose = st.querySelector('.pose');
+    return pose ? { pose: pose, h: mk(FRONT), row: mk(1), lastKey: '', smooth: i === 0 ? 0.11 : 0.19 } : null;
+  }).filter(Boolean);
+
+  const input = { x: 0, y: 0, inside: false };
+  let lastInputT = -1e9;
+  function record(cx, cy) {
+    input.x = clamp((cx / innerWidth) * 2 - 1, -1, 1);
+    input.y = clamp((cy / innerHeight) * 2 - 1, -1, 1);
+    input.inside = true;
+    lastInputT = performance.now();
+  }
+  window.addEventListener('pointermove', e => record(e.clientX, e.clientY), { passive: true });
+  ['touchstart', 'touchmove'].forEach(t => window.addEventListener(t, e => {
+    if (e.touches[0]) record(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true }));
+  document.documentElement.addEventListener('mouseleave', () => { input.inside = false; }, { passive: true });
+  function targets(dx, dy) {
+    const h = Math.abs(dx) < 0.07 ? FRONT : clamp(lerp(0, HN - 1, (dx + 1) / 2), 0, HN - 1);
+    let row = 1;
+    if (dy < -0.34) row = 0; else if (dy > 0.34) row = 2;
+    return { h, row };
+  }
+  function render(a, f, row) {
+    const ci = clamp(Math.round(f), 0, HN - 1);
+    const ri = clamp(Math.round(row), 0, VN - 1);
+    const key = ci + '|' + ri;
+    if (key === a.lastKey) return;
+    a.lastKey = key;
+    a.pose.style.backgroundPosition =
+      (ci / (HN - 1) * 100).toFixed(2) + '% ' + (ri / (VN - 1) * 100).toFixed(2) + '%';
+  }
+  let raf = 0, lastT = 0, autoStartT = null;
+  const IDLE_AFTER = 3.0;
+  function frame(t) {
+    const dt = Math.min(0.05, (t - lastT) / 1000 || 0.016);
+    lastT = t;
+    const now = performance.now();
+    const idleFor = (now - lastInputT) / 1000;
+    let dx, dy;
+    if (!input.inside || idleFor > IDLE_AFTER) {
+      if (autoStartT === null) autoStartT = now;
+      const el = (now - autoStartT) / 1000;
+      const amp = Math.min(1, el / 0.9);
+      const th = (el * 38) * Math.PI / 180;
+      dx = Math.cos(th) * amp; dy = -Math.sin(th) * amp * 0.55;
+    } else { autoStartT = null; dx = input.x; dy = input.y; }
+    const tg = targets(dx, dy);
+    actors.forEach(a => render(a, damp(a.h, tg.h, dt, 12, a.smooth), damp(a.row, tg.row, dt, 8, a.smooth)));
+    raf = requestAnimationFrame(frame);
+  }
+  actors.forEach(a => render(a, FRONT, 1));
+  lastT = performance.now();
+  raf = requestAnimationFrame(frame);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cancelAnimationFrame(raf);
+    else { lastT = performance.now(); raf = requestAnimationFrame(frame); }
+  });
+})();
+
+/* ============ 巡演造型 + 地图路线 ============ */
+(function () {
+  const looks = DATA.looks || [];
+  const img = document.getElementById('duImg');
+  const where = document.getElementById('duWhere');
+  const count = document.getElementById('duCount');
+  const canvas = document.getElementById('mapCanvas');
+  const svg = canvas.querySelector('.route-svg');
+  const pins = {};
+  const mapSubEl = document.getElementById('mapSub');
+  const lookSubEl = document.getElementById('lookSub');
+  const strip = document.getElementById('lookStrip');
+  const cells = [];                /* 造型总览里的 96 个小格子，和上下切换是同一个 i */
+  const hit = looks.filter(l => l.real).length;   /* 有几套配到了真人原图 */
+  let i = 0;
+
+  function show(n) {
+    if (!looks.length) return;
+    i = (n + looks.length) % looks.length;
+    const lk = looks[i];
+    img.classList.add('swap');
+    const pre = new Image();
+    pre.onload = () => { img.src = lk.img; img.onload = () => img.classList.remove('swap'); };
+    pre.src = lk.img;
+    where.innerHTML = lk.city + '<small>' + lk.date + '</small>';
+    count.textContent = 'look ' + (i + 1) + ' / ' + looks.length;
+    Object.keys(pins).forEach(c => pins[c].classList.toggle('active', c === lk.city));
+    /* 总览里高亮当前这套；如果用户已经滑到总览那一屏，顺手把它滚进视野 */
+    cells.forEach((c, k) => c.classList.toggle('on', k === i));
+    const cur = cells[i];
+    if (cur && strip.getBoundingClientRect().top < window.innerHeight - 60) {
+      cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+
+  /* 造型总览：96 套全铺开。每格是「真人原图 + 像素小人」并排的小相片，
+     真人图来自 build_looks_real.py（按日期城市从巡演原图配的，70 套有、26 套没拍到）。
+     loading="lazy" 保证这 96×(1~2) 张图只在用户真的往下滑时才下载。 */
+  if (strip && looks.length) {
+    looks.forEach((lk, n) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'look-cell' + (lk.real ? ' has-real' : '');
+      b.title = lk.city + ' · ' + lk.date + (lk.real ? '' : '（这天没留到现场照）');
+      b.setAttribute('aria-label', 'look ' + (n + 1) + ' · ' + lk.city + ' · ' + lk.date);
+
+      const row = document.createElement('span');
+      row.className = 'lc-row';
+      if (lk.real) {
+        const shot = document.createElement('span');
+        shot.className = 'lc-shot';
+        const ri = document.createElement('img');
+        ri.loading = 'lazy'; ri.decoding = 'async'; ri.alt = '';
+        ri.src = lk.real;
+        shot.appendChild(ri);
+        row.appendChild(shot);
+      }
+      const duo = document.createElement('span');
+      duo.className = 'lc-duo';
+      const im = document.createElement('img');
+      im.loading = 'lazy';
+      im.decoding = 'async';
+      im.alt = '';
+      im.src = lk.img.replace('looks/', 'looks-thumb/');
+      duo.appendChild(im);
+      row.appendChild(duo);
+
+      const tag = document.createElement('span');
+      tag.className = 'lc-tag';
+      tag.textContent = lk.city + ' · ' + lk.date;
+
+      b.appendChild(row);
+      b.appendChild(tag);
+      b.addEventListener('click', () => show(n));
+      strip.appendChild(b);
+      cells.push(b);
+    });
+    if (lookSubEl) lookSubEl.textContent = looks.length + ' OUTFITS · ' + hit + ' REAL SHOTS · TAP TO WEAR';
+  }
+  document.getElementById('duPrev').addEventListener('click', () => show(i - 1));
+  document.getElementById('duNext').addEventListener('click', () => show(i + 1));
+  window.addEventListener('keydown', e => {
+    if (!document.getElementById('v-tour').classList.contains('on')) return;
+    if (e.key === 'ArrowLeft') show(i - 1);
+    if (e.key === 'ArrowRight') show(i + 1);
+  });
+
+  /* 路线：数据里已经算好大圆弧（跨洋段带弧度，陆地段直线） */
+  (function drawRoute() {
+    const ns = 'http://www.w3.org/2000/svg';
+    (DATA.legs || []).forEach(leg => {
+      const p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', leg.d);
+      /* 调色板里没有刺眼的原色：洲际航线用棕，同区域用车那种雾霾蓝 */
+      p.setAttribute('stroke', leg.kind === 'arc' ? '#a8866f' : '#a6c7dd');
+      p.setAttribute('class', leg.kind === 'arc' ? 'route-arc' : 'route-land');
+      svg.appendChild(p);
+    });
+    /* 每个城市一个呼吸点 */
+    (DATA.cities || []).forEach(c => {
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('cx', (c.x * 1010).toFixed(1));
+      dot.setAttribute('cy', (c.y * 666).toFixed(1));
+      dot.setAttribute('r', 5);
+      dot.setAttribute('fill', '#6b4436');
+      dot.setAttribute('class', 'pulse');
+      svg.appendChild(dot);
+    });
+  })();
+
+  function placePins() {
+    (DATA.cities || []).forEach(c => {
+      if (pins[c.city]) return;
+      const el = document.createElement('div');
+      el.className = 'pin';
+      /* WORLD CUP 2026 和 EAST RUTHERFORD 是同一个球场，稍微错开一点免得叠在一起 */
+      const sameVenue = c.city === 'WORLD CUP 2026';
+      el.style.left = (c.x * 100 + (sameVenue ? 0.9 : 0)).toFixed(2) + '%';
+      el.style.top = (c.y * 100 - (sameVenue ? 1.3 : 0)).toFixed(2) + '%';
+      el.innerHTML = '<i></i><b>' + c.city + ' · ' + c.count + '</b>';
+      el.addEventListener('click', () => show(c.first));
+      canvas.appendChild(el);
+      pins[c.city] = el;
+    });
+    document.getElementById('mapNote').textContent =
+      (DATA.cities || []).length + ' cities · ' + looks.length + ' looks';
+    document.getElementById('mapSub').textContent = '2026 · 22 CITIES';
+  }
+  placePins();
+  if (looks.length) show(0);
+})();
+
+/* ============ 可拖拽 ============ */
+function makeDraggable(el, host) {
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const hr = host.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    const ox = e.clientX - er.left, oy = e.clientY - er.top;
+    let moved = false, sx = e.clientX, sy = e.clientY;
+    el.classList.add('dragging');
+    el.style.zIndex = ++window.__zTop || (window.__zTop = 40);
+    function move(ev) {
+      if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 4) moved = true;
+      el.style.left = (ev.clientX - hr.left - ox) + 'px';
+      el.style.top = (ev.clientY - hr.top - oy) + 'px';
+      el.dataset.moved = '1';
+    }
+    function up() {
+      el.classList.remove('dragging');
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (!moved) el.dispatchEvent(new CustomEvent('tap'));
+    }
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  });
+}
+
+/* ============ 照片墙（拍立得相框 + 点击放大） ============ */
+(function () {
+  const field = document.getElementById('photoField');
+  const frames = DATA.frames || [];
+  const n = DATA.counts.wall || 0;
+  const items = [];
+  const srcs = [];
+  for (let i = 1; i <= n; i++) srcs.push('assets/wall/' + String(i).padStart(3, '0') + '.jpg');
+
+  for (let i = 0; i < n; i++) {
+    const d = document.createElement('div');
+    d.className = 'pola';
+    const fr = frames.length ? frames[i % frames.length].img : '';
+    d.innerHTML = '<img class="pic" src="' + srcs[i] + '" alt="memory">' +
+                  (fr ? '<img class="frm" src="' + fr + '" alt="">' : '');
+    field.appendChild(d);
+    items.push(d);
+    d.addEventListener('tap', () => openLightbox(srcs, i));
+    makeDraggable(d, field);
+  }
+  decorate(field, [
+    { s: 'tl', w: 46, r: -7, p: 5,  o: .7, drag: 1 },   /* 四叶草 */
+    { s: 'br', w: 44, r: 9,  p: 12, o: .7, drag: 1 },   /* 粉色星爆 */
+    { s: 'bl', w: 38, r: -4, p: 2,  o: .6, drag: 1 }    /* 红心 */
+  ]);
+
+  function layout() {
+    const W = field.clientWidth;
+    if (W < 60) return;
+    const size = Math.max(118, Math.min(182, W / 6.8));
+    const cols = Math.max(2, Math.floor(W / (size + 44)));
+    const rows = Math.ceil(items.length / cols);
+    const H = Math.max(window.innerHeight * 0.7, 60 + rows * size * 1.44 + 34);
+    field.style.height = H.toFixed(0) + 'px';
+    items.forEach((el, idx) => {
+      const frm = el.querySelector('.frm');
+      const setAR = () => { if (frm && frm.naturalWidth) el.style.aspectRatio = frm.naturalWidth + '/' + frm.naturalHeight; else el.style.aspectRatio = '3/4'; };
+      if (frm && frm.complete) setAR();
+      else if (frm) frm.addEventListener('load', setAR, { once: true });
+      else el.style.aspectRatio = '3/4';
+      if (el.dataset.moved) return;
+      el.style.width = size.toFixed(0) + 'px';
+      const col = idx % cols, row = Math.floor(idx / cols);
+      const cw = W / cols;
+      const x = cw * col + (cw - size) / 2 + (Math.random() * 24 - 12);
+      const y = 54 + row * (size * 1.44) + (Math.random() * 20 - 10);
+      el.style.left = Math.max(8, Math.min(W - size - 8, x)).toFixed(0) + 'px';
+      el.style.top = Math.max(44, Math.min(H - size * 1.36, y)).toFixed(0) + 'px';
+      el.style.rotate = (Math.random() * 7 - 3.5).toFixed(1) + 'deg';
+    });
+  }
+  window.__photoLayout = layout;
+  if (field.clientWidth > 50) requestAnimationFrame(layout);
+  window.addEventListener('resize', () => {
+    if (document.getElementById('v-photos').classList.contains('on')) layout();
+  });
+})();
+
+/* ============ 装饰篮：把篮子里的毛毡小物拖到板子上 ============
+   交互口径：
+     · 篮子里的东西是「实体」，拖走一个就少一个，原地留一个等大的占位符；
+     · 拖动期间小物挂在 body 上、position:fixed，跟着指针满屏走。
+       篮子挪到左边之后不能再「一按就塞进板子里」—— 板子 overflow:hidden，
+       篮子整段都在板外，塞进去会被裁掉、看不见，所以改成先跟着指针，
+       松手落在板子上才真的放进去；
+     · 放进板子时把视口坐标换成板内坐标，再夹进板内 4px，
+       免得贴着边放的小物被 overflow:hidden 切掉一角；
+     · 松手时指针在板外 -> 还回篮子（占位符换回小物）；
+       从篮子里拿出来点一下没拖动 -> 也还回去；已在板上的点一下则留在原地。 */
+(function () {
+  const pile = document.getElementById('dockPile');
+  const field = document.getElementById('photoField');
+  if (!pile || !field) return;
+
+  /* 17 个 Y2K 小物 + 11 个长尾夹/别针。高度按原图比例反推宽度，
+     再压 76px 的宽上限 —— 不压的话 100x260 那种竖长条会在篮子里变成一根柱子。 */
+  const GOODS = [];
+  for (let i = 1; i <= 17; i++) GOODS.push(['assets/felt/trinket-' + String(i).padStart(2, '0') + '.png', 52]);
+  for (let i = 1; i <= 11; i++) GOODS.push(['assets/felt/clip-' + String(i).padStart(2, '0') + '.png', 41]);
+
+  function fit(el, h) {
+    const nw = el.naturalWidth, nh = el.naturalHeight;
+    if (!nw || !nh) return;
+    let w = Math.min(76, Math.max(16, h * nw / nh));
+    el.style.setProperty('--w', w.toFixed(0) + 'px');
+    el.style.setProperty('--hh', (w * nh / nw).toFixed(0) + 'px');
+  }
+
+  function home(el, slot) {
+    /* 从板上拖回来的小物，pointerdown 时已经不在篮子里了，拿不到 slot，
+       所以「自己的坑」要在挪出去的时候就记在身上（el.__slot），否则坑会孤零零留在篮子里。 */
+    const s = slot || el.__slot;
+    el.classList.remove('placed', 'lifting', 'flying');
+    ['left', 'top', 'width', 'height', 'z-index'].forEach(p => el.style.removeProperty(p));
+    if (s && s.parentNode === pile) {
+      pile.replaceChild(el, s);
+      el.__slot = null;
+    } else {
+      pile.appendChild(el);
+    }
+    el.classList.add('returning');
+    el.addEventListener('animationend', () => el.classList.remove('returning'), { once: true });
+  }
+
+  /* 放进板子里：视口坐标 (vx,vy) 是这块小物的左上角，夹进板内 4px 后落地 */
+  function place(el, vx, vy, w0, h0) {
+    const f = field.getBoundingClientRect();
+    el.classList.remove('flying');
+    el.classList.add('placed');
+    el.style.left = Math.max(4, Math.min(f.width - w0 - 4, vx - f.left)).toFixed(0) + 'px';
+    el.style.top = Math.max(4, Math.min(f.height - h0 - 4, vy - f.top)).toFixed(0) + 'px';
+    field.appendChild(el);
+  }
+
+  function bind(el) {
+    el.addEventListener('pointerdown', e => {
+      if (e.button) return;
+      e.preventDefault();
+      /* getBoundingClientRect 带 rotate，量出来的框比本体大一圈；
+         摆位置用 offsetWidth/Height（布局尺寸，不含 transform），
+         抓取点按本体左上角算，肉眼就看不出来跳动。 */
+      const r0 = el.getBoundingClientRect();
+      const w0 = el.offsetWidth, h0 = el.offsetHeight;
+      const ox = e.clientX - r0.left, oy = e.clientY - r0.top;
+      const sx = e.clientX, sy = e.clientY;
+      const wasOnBoard = el.parentNode === field;
+      let moved = false, slot = null;
+
+      if (el.parentNode === pile) {          /* 从篮子里拿出来 */
+        slot = document.createElement('i');
+        slot.className = 'charm-slot';
+        slot.style.width = w0 + 'px';
+        slot.style.height = h0 + 'px';
+        pile.insertBefore(slot, el);
+        el.__slot = slot;                    /* 记上自己的坑，拖回来才有地方放 */
+      }
+      el.classList.remove('placed');
+      el.classList.add('lifting', 'flying');
+      el.style.width = w0 + 'px';
+      el.style.height = h0 + 'px';
+      el.style.left = r0.left + 'px';
+      el.style.top = r0.top + 'px';
+      el.style.zIndex = (window.__zTop = (window.__zTop || 900) + 1);
+      document.body.appendChild(el);
+
+      function move(ev) {
+        if (!moved && Math.hypot(ev.clientX - sx, ev.clientY - sy) > 3) moved = true;
+        el.style.left = (ev.clientX - ox).toFixed(0) + 'px';
+        el.style.top = (ev.clientY - oy).toFixed(0) + 'px';
+      }
+      function up(ev) {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', up);
+        el.classList.remove('lifting');
+        const f = field.getBoundingClientRect();
+        const onBoard = ev.clientX >= f.left - 8 && ev.clientX <= f.right + 8
+                     && ev.clientY >= f.top - 8 && ev.clientY <= f.bottom + 8;
+        if (!moved && wasOnBoard) {          /* 已经在板上，点一下不挪窝 */
+          place(el, r0.left, r0.top, w0, h0);
+        } else if (moved && onBoard) {       /* 真拖了，落在板上 */
+          place(el, ev.clientX - ox, ev.clientY - oy, w0, h0);
+        } else {                             /* 拖到板外 / 点一下没拖 -> 回家 */
+          home(el, slot);
+        }
+      }
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+    });
+  }
+
+  GOODS.forEach(([src, h], k) => {
+    const el = document.createElement('img');
+    el.className = 'charm';
+    el.alt = ''; el.draggable = false; el.loading = 'lazy';
+    el.style.setProperty('--r', ((k * 37) % 13 - 6).toFixed(1) + 'deg');
+    el.addEventListener('load', () => fit(el, h), { once: true });
+    el.src = src;
+    if (el.complete && el.naturalWidth) fit(el, h);
+    pile.appendChild(el);
+    bind(el);
+  });
+})();
+
+/* ============ 专辑（封面 + 瀑布流照片 + 灯箱） ============ */
+(function () {
+  function covers(hostId, list) {
+    const host = document.getElementById(hostId);
+    list.forEach(s => {
+      const im = document.createElement('img');
+      im.loading = 'lazy'; im.src = s; im.alt = 'album cover';
+      im.addEventListener('click', () => openLightbox(list, list.indexOf(s)));
+      host.appendChild(im);
+    });
+  }
+  covers('coversFace', ['assets/cover-face.jpg']);
+  covers('coversMuse', ['assets/cover-muse.jpg', 'assets/cover-muse-tape.jpg']);
+
+  function grid(hostId, folder, n) {
+    const host = document.getElementById(hostId);
+    const srcs = [];
+    for (let i = 1; i <= n; i++) srcs.push('assets/' + folder + '/' + String(i).padStart(3, '0') + '.jpg');
+    srcs.forEach((s, k) => {
+      const f = document.createElement('figure');
+      const im = document.createElement('img');
+      im.loading = 'lazy'; im.src = s; im.alt = folder + ' photo';
+      f.appendChild(im);
+      f.addEventListener('click', () => openLightbox(srcs, k));
+      host.appendChild(f);
+    });
+  }
+  grid('gridFace', 'face', DATA.counts.face || 0);
+  grid('gridMuse', 'muse', DATA.counts.muse || 0);
+})();
+
+/* ============ 带双击点赞的点击：单击放大 / 双击出心 ============ */
+function heartBurst(img, clientX, clientY) {
+  const host = img.parentElement;
+  if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  const hr = host.getBoundingClientRect();
+  const el = document.createElement('span');
+  el.className = 'burst';
+  el.textContent = '♥';
+  el.style.left = (clientX - hr.left) + 'px';
+  el.style.top = (clientY - hr.top) + 'px';
+  host.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+function tapLike(img, openFn, likeEl) {
+  let t = null;
+  img.addEventListener('click', e => {
+    if (t) {                                 /* 双击 -> 点赞 */
+      clearTimeout(t); t = null;
+      heartBurst(img, e.clientX, e.clientY);
+      if (likeEl) {
+        const n = (+likeEl.dataset.n || 0) + 1;
+        likeEl.dataset.n = String(n);
+        likeEl.textContent = '♥ ' + n.toLocaleString();
+      }
+      return;
+    }
+    t = setTimeout(() => { t = null; openFn(); }, 210);   /* 单击 -> 放大 */
+  });
+}
+
+/* ============ Feed（POSTS / GRID / STORY 三种浏览） ============ */
+(function () {
+  const n = DATA.counts.wvs || 0;
+  const list = document.getElementById('feedList');
+  const gridEl = document.getElementById('feedGrid');
+  const srcs = [];
+  for (let i = 1; i <= n; i++) srcs.push('assets/wvs/' + String(i).padStart(3, '0') + '.jpg');
+
+  srcs.forEach((s, k) => {
+    const base = 1000 + (k * 137) % 9000;
+    const card = document.createElement('div');
+    card.className = 'wvs-card';
+    card.innerHTML =
+      '<div class="row"><span class="a2"></span><span class="n">지민</span>' +
+      '<span class="t">' + (k + 1) + 'd</span></div>' +
+      '<img loading="lazy" src="' + s + '" alt="jimin weverse post">' +
+      '<div class="foot"><span class="heart" data-n="' + base + '">♡ ' + base.toLocaleString() +
+      '</span><span>💬 ' + (30 + (k * 17) % 400) + '</span></div>';
+    const img = card.querySelector('img');
+    tapLike(img, () => openLightbox(srcs, k), card.querySelector('.heart'));
+    list.appendChild(card);
+  });
+
+  /* ---- GRID 只放「照片型」动态 ---- */
+  /* 112 条里有 65 条是白底长文字截图，裁成 3:4 只剩一条，很难看。
+     这份索引是离线筛出来的（白底像素占比 < 0.62 且 亮度标准差 > 40），共 47 张真照片。 */
+  const PHOTO_IDX = [
+    2, 3, 4, 7, 9, 11, 12, 13, 14, 28, 31, 36, 40, 42, 45, 47, 49, 51, 52, 53, 54,
+    61, 64, 65, 67, 69, 70, 71, 73, 74, 75, 76, 77, 80, 83, 89, 91, 92, 95, 96,
+    97, 101, 102, 105, 109, 110, 111
+  ];
+  const photoSrcs = PHOTO_IDX.map(k => srcs[k - 1]).filter(Boolean);
+  photoSrcs.forEach((s, j) => {
+    const g = document.createElement('img');
+    g.loading = 'lazy'; g.src = s; g.alt = 'weverse photo ' + PHOTO_IDX[j];
+    tapLike(g, () => openLightbox(photoSrcs, j), null);
+    gridEl.appendChild(g);
+  });
+  document.getElementById('wvsCount').textContent = n + ' posts';
+
+  /* ---- STORY：自动播放 + 点两侧翻页 + 长按暂停 ---- */
+  /* 挑的是最像照片的 14 条动态（其余多是纯文字长图，不适合做成 story） */
+  const STORY_IDX = [76, 65, 75, 31, 70, 51, 69, 64, 12, 67, 9, 4, 7, 3];
+  const STORY_N = STORY_IDX.length, DUR = 4600;
+  const storySrcs = STORY_IDX.map(k => srcs[k - 1]).filter(Boolean);
+  const stage = document.getElementById('storyStage');
+  const sBg = document.getElementById('storyBg');
+  const bars = document.getElementById('storyBars');
+  const sImg = document.getElementById('storyImg');
+  const sCap = document.getElementById('storyCap');
+  const sLike = document.getElementById('storyLike');
+  const CAPS = ['오늘도 고마워 💜', '너에게 하는 말', '우리 같이 걸을래', '사랑해',
+                '잘 자, 좋은 꿈 꿔', '보고 싶었어', '밥 꼭 챙겨 먹어', '생일 축하해, 지민',
+                '언제나 네 편이야', '오래오래 함께하자', '행복해야 해', '고생 많았어',
+                '네가 있어서 좋아', '우리의 봄'];
+  const liked = {};
+  let si = 0, timer = null;
+  for (let i = 0; i < STORY_N; i++) bars.appendChild(document.createElement('i')).innerHTML = '<em></em>';
+
+  function storyGo(i, keepTimer) {
+    si = Math.max(0, Math.min(STORY_N - 1, i));
+    [...bars.children].forEach((b, k) => {
+      b.className = k < si ? 'done' : (k === si ? 'cur' : '');
+    });
+    sImg.src = storySrcs[si];
+    sBg.style.backgroundImage = 'url("' + storySrcs[si] + '")';
+    sCap.textContent = CAPS[si % CAPS.length];
+    sLike.classList.toggle('on', !!liked[si]);
+    stage.classList.remove('paused');
+    const cur = bars.children[si];
+    if (cur) { cur.classList.remove('cur'); void cur.offsetWidth; cur.classList.add('cur'); }
+    clearTimeout(timer);
+    if (keepTimer !== false) timer = setTimeout(storyAuto, DUR);
+  }
+  function storyAuto() { if (si < STORY_N - 1) storyGo(si + 1); else stopStory(); }
+  function stopStory() { clearTimeout(timer); si = 0; [...bars.children].forEach(b => b.className = ''); }
+  window.__stopStory = stopStory;
+
+  stage.addEventListener('pointerdown', () => { stage.classList.add('paused'); clearTimeout(timer); });
+  stage.addEventListener('pointerup', () => {
+    stage.classList.remove('paused');
+    clearTimeout(timer); timer = setTimeout(storyAuto, 1200);
+  });
+  document.querySelectorAll('.story-nav i').forEach(z => z.addEventListener('click', e => {
+    e.stopPropagation();
+    if (+z.dataset.dir < 0) storyGo(si - 1); else storyAuto();
+  }));
+  sLike.addEventListener('click', e => {
+    e.stopPropagation();
+    liked[si] = !liked[si];
+    sLike.classList.toggle('on', !!liked[si]);
+  });
+  document.getElementById('storyX').addEventListener('click', e => {
+    e.stopPropagation(); stopStory(); setTab('single');
+  });
+
+  /* ---- Highlights：把 STORY 的 14 段按主题分组，点封面直接跳进那一段 ---- */
+  /* 这是 POSTS 页最上面那一排圆形封面，不占额外高度，却把 STORY 变成「可直达的内容」 */
+  const HL = [
+    { nm: 'ARIRANG',  at: 0 },
+    { nm: 'ON STAGE', at: 3 },
+    { nm: 'BIRTHDAY', at: 7 },
+    { nm: 'LETTER',   at: 10 }
+  ];
+  const hlRow = document.getElementById('wvsHl');
+  HL.forEach(h => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = '<span class="ring"><em></em></span><span class="nm"></span>';
+    b.querySelector('em').style.backgroundImage = 'url("' + storySrcs[h.at % storySrcs.length] + '")';
+    b.querySelector('.nm').textContent = h.nm;
+    b.addEventListener('click', () => { setTab('story'); storyGo(h.at); });
+    hlRow.appendChild(b);
+  });
+
+  /* story 高度 = 手机屏高 - 顶部头部 - 屏幕下内边距，否则会被裁掉 */
+  function sizeStory() {
+    const scr = document.querySelector('#v-feed .screen');
+    const head = document.querySelector('.wvs-head');
+    if (!scr || !head) return;
+    const pb = parseFloat(getComputedStyle(scr).paddingBottom) || 0;
+    const h = scr.clientHeight - head.offsetHeight - pb;
+    if (h > 180) stage.style.height = h + 'px';
+  }
+  window.addEventListener('resize', sizeStory);
+
+  const TABS = { single: 'panelSingle', grid: 'panelGrid', story: 'panelStory' };
+  function setTab(v) {
+    document.querySelectorAll('.wvs-tab').forEach(x => x.classList.toggle('on', x.dataset.tab === v));
+    Object.keys(TABS).forEach(k => document.getElementById(TABS[k]).classList.toggle('on', k === v));
+    const scr = document.querySelector('#v-feed .screen');
+    scr.classList.toggle('story-on', v === 'story');
+    scr.scrollTop = 0;
+    if (v === 'story') { sizeStory(); storyGo(0); } else stopStory();
+  }
+  document.querySelectorAll('.wvs-tab').forEach(t =>
+    t.addEventListener('click', () => setTab(t.dataset.tab)));
+})();
+
+/* ============ 留言板 ============ */
+(function () {
+  const KEY = 'jimin-messages-v4';
+  const list = document.getElementById('msgList');
+  const form = document.getElementById('msgForm');
+  /* 不再预置示例小纸条：一开始是空的，写一条贴一条 */
+  const JUNK = [
+    '지민아 생일 축하해! 언제나 곁에 있을게 💜',
+    'Promise? Promise. 生日快乐，我们的月神大人。'
+  ];
+  let msgs;
+  try {
+    msgs = JSON.parse(localStorage.getItem(KEY));
+    if (!Array.isArray(msgs)) {
+      /* 从 v3 迁过来：把当年塞进去的两条示例剔掉，用户自己写的原样保留 */
+      const old = JSON.parse(localStorage.getItem('jimin-messages-v3')) || [];
+      msgs = Array.isArray(old) ? old.filter(m => m && JUNK.indexOf(m.text) === -1) : [];
+      try { localStorage.setItem(KEY, JSON.stringify(msgs)); } catch (e2) {}
+    }
+  } catch (e) { msgs = []; }
+  if (!Array.isArray(msgs)) msgs = [];
+  function render() {
+    list.innerHTML = '';
+    if (!msgs.length) {                       /* 没有示例小纸条，写一条才贴一条 */
+      const e = document.createElement('div');
+      e.className = 'msg-empty';
+      e.textContent = '还没有小纸条 —— 写下第一张吧 ♡';
+      list.appendChild(e);
+      return;
+    }
+    msgs.slice().reverse().forEach(m => {
+      const d = document.createElement('div');
+      d.className = 'msg-note';
+      d.style.setProperty('--r', (Math.random() * 6 - 3).toFixed(1) + 'deg');
+      d.innerHTML = '<div class="who"></div><div class="txt"></div><div class="time"></div>';
+      d.querySelector('.who').textContent = m.name;
+      d.querySelector('.txt').textContent = m.text;
+      d.querySelector('.time').textContent = m.time || '';
+      list.appendChild(d);
+    });
+  }
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('msgName').value.trim();
+    const text = document.getElementById('msgText').value.trim();
+    if (!name || !text) return;
+    const now = new Date(), pad = x => String(x).padStart(2, '0');
+    msgs.push({ name: name.slice(0, 20), text: text.slice(0, 300),
+      time: now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
+            ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) });
+    try { localStorage.setItem(KEY, JSON.stringify(msgs)); } catch (err) {}
+    form.reset(); render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

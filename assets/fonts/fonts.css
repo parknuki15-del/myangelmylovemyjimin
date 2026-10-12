@@ -1,0 +1,25 @@
+/* 自托管字体 —— 由 build_fonts.py 生成，不要手改 */
+
+@font-face {
+  font-family: 'Caveat';
+  font-style: normal;
+  font-weight: 500 700;
+  font-display: swap;
+  src: url('./caveat.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Gochi Hand';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./gochi-hand-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'ZCOOL KuaiLe';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./zcool-kuaile-400.woff2') format('woff2');
+}
