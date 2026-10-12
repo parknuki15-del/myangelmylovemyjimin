@@ -201,10 +201,40 @@ MEXICO CITY 05.07–05.10 / STANFORD 05.16–05.19）根目录里没有对应原
 - **BGM《Promise》默认不在仓库里**：`assets/promise.mp3` 已被 `.gitignore` 排除，
   避免公开仓库因版权被投诉下架。
   本地放着该文件时页面照常有 BGM；**线上没有这个文件时，右下角的唱片按钮会自动隐藏**
-  （不会留一个点了没反应的死按钮）。
-  想让线上也有音乐：本地准备好 mp3，把 `.gitignore` 里那一行删掉再 push
-  —— 前提是你确认自己有权这么用。
+  （不会留一个点了没反应的死按钮）。想让线上也有音乐，见下一节。
 - 本项目是**非营利的粉丝应援作品**，仅供个人欣赏与学习，请勿商用。
+
+### 想让线上也有音乐 · `add-music.sh`
+
+```bash
+bash add-music.sh "/路径/你想用的歌.mp3"    # 检查音频 → 放进去 → 放行 .gitignore → 提交
+bash go-live.sh                            # 推上线
+```
+
+脚本会先告诉你这个文件多长、多大，**并且会明确提醒风险再让你确认**：
+把商业歌曲放进公开仓库＝公开分发；一旦被 BIGHIT / HYBE 投诉，
+GitHub 处理的是**整个 Pages 站点**（不是只删那个 mp3，是站直接打不开），
+账号还会吃一次 strike。
+
+**零风险的替代做法**是用免费可商用的音乐：
+
+| 来源 | 说明 |
+| --- | --- |
+| [Pixabay Music](https://pixabay.com/music/) | 免署名，最省事 |
+| [Free Music Archive](https://freemusicarchive.org/) | 注意逐首看授权 |
+| [YouTube 音频库](https://studio.youtube.com/) | 需 Google 账号 |
+
+找氛围搜：`music box` / `lullaby` / `soft piano` / `birthday`。
+
+技术上：网页 BGM 用 **单声道 64~96 kbps** 就够（本站那首 2 分 23 秒只有 1.28 MB），
+超过 4 MB 脚本会提示你压一下：
+
+```bash
+ffmpeg -i 原曲.mp3 -ac 1 -b:a 80k assets/promise.mp3
+```
+
+播放时机：**点 "Open the Gift ♡" 那一下才开始**（浏览器禁止页面一打开就自动出声），
+之后右下角出现 ♪ 唱片按钮，可暂停/继续，切板块不会中断。
 
 如果你是权利人并希望移除某些素材，提个 issue 即可。
 
