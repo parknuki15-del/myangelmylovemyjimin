@@ -1224,6 +1224,53 @@
     /* 手指点得中：触屏上放大一点 */
     .msg-note .del { width: 25px; height: 25px; font-size: 16px; }
   }
+
+  /* --- 留言页：「只给我自己看」的勾选项 -----------------------------------
+     默认不勾 = 公开（所有人看得见）；勾上 = 只有自己看得到。
+     这个控件只在「数据库支持这一列 + 云端已连上」时才出现 ——
+     免得出现一个按了没用、让人误以为藏起来了的死按钮。 */
+  .msg-form .msg-hide {
+    position: relative; display: inline-flex; align-items: center; gap: 9px;
+    margin: 2px 0 14px; cursor: pointer; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .msg-hide.off { display: none; }
+  .msg-form .msg-hide input {
+    position: absolute; top: 50%; left: 0; width: 0; height: 0;
+    margin: 0; padding: 0; border: 0; opacity: 0; pointer-events: none;
+  }
+  .msg-hide .msg-hide-box {
+    width: 19px; height: 19px; flex: none; border-radius: 5px;
+    border: 1.5px solid var(--line); background: var(--paper-2);
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s ease, border-color .15s ease;
+  }
+  .msg-hide input:checked + .msg-hide-box { background: var(--blue); border-color: var(--blue-ink); }
+  .msg-hide input:checked + .msg-hide-box::after {
+    content: ""; width: 5px; height: 9px; margin-top: -2px;
+    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(43deg);
+  }
+  .msg-hide input:focus-visible + .msg-hide-box { outline: 2px solid var(--pink-deep); outline-offset: 2px; }
+  .msg-hide .msg-hide-txt {
+    font-family: "Gochi Hand", cursive; font-size: 14.5px;
+    color: var(--ink-faint); transition: color .15s ease;
+  }
+  .msg-hide input:checked ~ .msg-hide-txt { color: var(--brown); }
+
+  /* --- 自己那张隐藏的纸条上，多一个「公开它」的小按钮 ---------------------
+     按要求不给隐藏条加任何额外标记，看起来跟别的纸条一样；
+     但既然是藏起来的，就得留一个能反悔的出口，所以右下角放一行淡淡的小字。 */
+  .msg-note .pub {
+    display: block; margin: 9px 0 0 auto; padding: 0; border: 0; background: transparent;
+    font-family: "Gochi Hand", cursive; font-size: 12.5px; line-height: 1.4;
+    color: var(--ink-faint); opacity: .68; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity .15s ease, color .15s ease;
+  }
+  .msg-note .pub:hover, .msg-note .pub:focus-visible { opacity: 1; color: var(--pink-deep); outline: none; }
+  .msg-note .pub:active { transform: scale(.94); }
+  .msg-note .pub[disabled] { opacity: .35; cursor: default; }
+  @media (max-width: 620px) { .msg-note .pub { font-size: 14px; } }
 </style>
 
 </head>
@@ -1492,6 +1539,11 @@
     <form class="msg-form" id="msgForm">
       <input id="msgName" maxlength="20" placeholder="Your name" required>
       <textarea id="msgText" maxlength="300" placeholder="Write a birthday letter to Jimin…" required></textarea>
+      <label class="msg-hide off" id="msgHideWrap">
+        <input type="checkbox" id="msgHide">
+        <span class="msg-hide-box" aria-hidden="true"></span>
+        <span class="msg-hide-txt">Only I can see this</span>
+      </label>
       <button type="submit">Send My Letter ♡</button>
     </form>
     <div class="msg-list" id="msgList"></div>
@@ -2699,9 +2751,20 @@ function tapLike(img, openFn, likeEl) {
   const nameEl = document.getElementById('msgName');
   const textEl = document.getElementById('msgText');
   const view   = document.getElementById('v-messages');
+  const hideWrap = document.getElementById('msgHideWrap');
+  const hideEl   = document.getElementById('msgHide');
 
-  let db = null;      /* 不是 null 就说明云端可用 */
-  let myUid = null;   /* 我在云端的匿名身份：用来判断「哪张是我写的」 */
+  let db = null;         /* 不是 null 就说明云端可用 */
+  let myUid = null;      /* 我在云端的匿名身份：用来判断「哪张是我写的」 */
+  let hasHidden = false; /* 数据库里有没有 hidden 这一列；没有就整个功能不出现 */
+
+  /* 「只给我自己看」的勾选项只在真正能用的时候才露出来 */
+  function syncHideToggle() {
+    if (!hideWrap) return;
+    const usable = !!(db && hasHidden);
+    hideWrap.classList.toggle('off', !usable);
+    if (!usable && hideEl) hideEl.checked = false;
+  }
 
   /* ---------- 小工具 ---------- */
   const pad2 = x => String(x).padStart(2, '0');
@@ -2739,6 +2802,14 @@ function tapLike(img, openFn, likeEl) {
       b.textContent = '\u00d7';
       b.addEventListener('click', ev => { ev.preventDefault(); removeNote(m, b); });
       d.appendChild(b);
+      if (m.hidden) {                   /* 藏起来的那张，右下角留一个能反悔的出口 */
+        const p = document.createElement('button');
+        p.type = 'button';
+        p.className = 'pub';
+        p.textContent = 'make it public';
+        p.addEventListener('click', ev => { ev.preventDefault(); publishNote(m, p); });
+        d.appendChild(p);
+      }
     }
     return d;
   }
@@ -2759,7 +2830,7 @@ function tapLike(img, openFn, likeEl) {
     const a = read(LOCAL_KEY, []);
     return (Array.isArray(a) ? a : [])
       .map((m, i) => ({ _id: 'L' + i, name: (m && m.name) || '', text: (m && m.text) || '',
-                        time: (m && m.time) || '', mine: true }))
+                        time: (m && m.time) || '', mine: true, hidden: false }))
       .filter(m => m.text)
       .reverse();                       /* 新的在上面，跟云端一致 */
   }
@@ -2826,29 +2897,62 @@ function tapLike(img, openFn, likeEl) {
     write(MINE_KEY, a.slice(-PAGE));
   }
 
-  async function fetchAll() {
-    const res = await db.from(TBL)
-      .select('id,name,text,time,user_id')
+  /* 数据库里到底有没有 hidden 这一列？没有就整个功能不出现（也不会写坏数据） */
+  async function probeHidden() {
+    try {
+      const res = await db.from(TBL).select('id,hidden').limit(1);
+      return !(res && res.error);
+    } catch (e) { return false; }
+  }
+
+  /* 读的时候不用自己过滤：策略已经写死「公开的 + 自己藏的」才给看，
+     所以别人藏起来的纸条根本不会出现在这里 */
+  function queryRows(withHidden) {
+    const cols = 'id,name,text,time,user_id' + (withHidden ? ',hidden' : '');
+    return db.from(TBL)
+      .select(cols)
       .order('created_at', { ascending: false })
       .limit(PAGE);
+  }
+  async function fetchAll() {
+    let res = await queryRows(hasHidden);
+    if (hasHidden && res && res.error) {
+      /* 万一是「隐藏」这一列本身出了岔子（比如被人改过），就退回普通读取 ——
+         宁可这个功能消失，也绝不让整个留言板掉线 */
+      hasHidden = false;
+      syncHideToggle();
+      res = await queryRows(false);
+    }
     if (res && res.error) throw new Error(res.error.message || 'read failed');
     const mine = mineIds();
     return ((res && res.data) || []).map(r => ({
       _id: r.id, name: r.name, text: r.text, time: r.time,
+      hidden: hasHidden ? !!r.hidden : false,
       mine: !!((myUid && String(r.user_id) === myUid) || mine.indexOf(String(r.id)) >= 0)
     }));
   }
-  async function push(name, text, time) {
+  async function push(name, text, time, hidden) {
     /* user_id 交给数据库的 auth.uid() 自动填，前端不传 —— 从源头杜绝伪造归属 */
-    const res = await db.from(TBL).insert({
+    const row = {
       name: String(name).slice(0, 20),
       text: String(text).slice(0, 300),
       time: time || stamp(new Date())
-    }).select('id');
+    };
+    /* 只有数据库真支持这一列时才带上去。否则整条插入都会被拒 ——
+       连公开的纸条都发不出去，那是最糟的情况 */
+    if (hasHidden && hidden) row.hidden = true;
+    const res = await db.from(TBL).insert(row).select('id');
     if (res && res.error) throw new Error(res.error.message || 'insert failed');
-    const row = (res && res.data && res.data[0]) || null;
-    if (row && row.id !== undefined && row.id !== null) rememberMine(row.id);
-    return row;
+    const rec = (res && res.data && res.data[0]) || null;
+    if (rec && rec.id !== undefined && rec.id !== null) rememberMine(rec.id);
+    return rec;
+  }
+  /* 把藏起来的那张改成公开。策略里限死「只能改 user_id = 自己」的行，
+     所以别人那张就算拼上 id 也改不动（返回空数组、不报错）。 */
+  async function setHidden(id, hidden) {
+    const res = await db.from(TBL).update({ hidden: !!hidden }).eq('id', id).select('id');
+    if (res && res.error) throw new Error(res.error.message || 'update failed');
+    return (res && res.data) || [];
   }
   /* 删除：策略里已经限死「只能删 user_id = 自己」的行，所以这里不拼、也不能拼归属条件。
      带上 select('id') 是为了看清楚到底删掉没有 —— 权限不够时返回空数组、不报错。 */
@@ -2879,6 +2983,18 @@ function tapLike(img, openFn, likeEl) {
     }
   }
 
+  /* ---------- 把藏起来的那张公开出来 ---------- */
+  async function publishNote(m, btn) {
+    if (!db || !hasHidden) return;
+    btn.disabled = true;
+    try {
+      await setHidden(m._id, false);
+      await refresh();           /* 以服务端为准 */
+    } catch (e) {
+      btn.disabled = false;      /* 没改成就把按钮恢复，别变成死按钮 */
+    }
+  }
+
   /* ---------- 连云端：第一次进留言页时做；失败了下一次进来会重试 ---------- */
   let booting = false;
   async function boot() {
@@ -2886,18 +3002,21 @@ function tapLike(img, openFn, likeEl) {
     booting = true;
     try {
       db = await connect();
+      hasHidden = await probeHidden();   /* 先问清楚数据库支不支持「隐藏」 */
+      syncHideToggle();
       await fetchAll();          /* 真读一次才算数：连得上才留在云端模式 */
       /* 以前写在本机、还没上云的纸条，一次性搬上去（只搬一次） */
       if (!read(MOVED_KEY, false)) {
         const old = read(LOCAL_KEY, []);
         const arr = Array.isArray(old) ? old.filter(m => m && m.text) : [];
-        for (const m of arr) { try { await push(m.name, m.text, m.time); } catch (e) {} }
+        for (const m of arr) { try { await push(m.name, m.text, m.time, false); } catch (e) {} }
         write(MOVED_KEY, true);
         write(LOCAL_KEY, []);
       }
       await refresh();
     } catch (e) {
       db = null;                 /* 连不上就老实退回本机模式 */
+      syncHideToggle();          /* 本机模式下无所谓公开/隐藏，把勾选项收起来 */
       render(localNotes());
     } finally { booting = false; }
   }
@@ -2907,6 +3026,8 @@ function tapLike(img, openFn, likeEl) {
     e.preventDefault();
     const name = (nameEl.value || '').trim();
     const text = (textEl.value || '').trim();
+    /* 必须在 form.reset() 之前读，否则勾选状态已经被清掉了 */
+    const keep = !!(hideEl && hideEl.checked && hasHidden && db);
     if (!name || !text) return;
     if (Date.now() - (Number(read(LAST_KEY, 0)) || 0) < GAP_MS) return;   /* 防刷 */
     write(LAST_KEY, Date.now());
@@ -2917,9 +3038,10 @@ function tapLike(img, openFn, likeEl) {
     /* 先乐观地贴上去；落库成功再以服务端数据为准 */
     let before = [];
     try { before = await fetchAll(); } catch (e) {}
-    render([{ _id: 'tmp' + Date.now(), name: name, text: text, time: stamp(new Date()), mine: true }].concat(before));
+    render([{ _id: 'tmp' + Date.now(), name: name, text: text, time: stamp(new Date()),
+              mine: true, hidden: keep }].concat(before));
     try {
-      await push(name, text);
+      await push(name, text, undefined, keep);
       await refresh();
     } catch (err) {
       /* 云端这一步不可用：直接退回本机模式，并让刚写的这张留在页面上，
