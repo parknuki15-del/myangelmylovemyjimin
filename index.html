@@ -1204,6 +1204,26 @@
     .dock-basket { width: 64px; }
     .dock-pile { gap: 4px; }
   }
+
+  /* --- 留言页：纸条右上角的小叉 -----------------------------------------
+     只给「自己写的那张」加，别人写的纸条上没有它。
+     做得轻、淡、不抢眼，跟手账贴纸的调子一致；hover 才实起来。 */
+  .msg-note .del {
+    position: absolute; top: 3px; right: 3px; margin: 0; padding: 0;
+    width: 21px; height: 21px; display: flex; align-items: center; justify-content: center;
+    border: 0; border-radius: 50%; background: transparent;
+    color: #bda49b; font-family: inherit; font-size: 15px; line-height: 1;
+    cursor: pointer; opacity: .62; -webkit-tap-highlight-color: transparent;
+    transition: opacity .15s ease, background .15s ease, color .15s ease;
+  }
+  .msg-note .del:hover, .msg-note .del:focus-visible {
+    opacity: 1; background: rgba(217,168,176,.24); color: #a8636f; outline: none;
+  }
+  .msg-note .del:active { transform: scale(.86); }
+  @media (max-width: 620px) {
+    /* 手指点得中：触屏上放大一点 */
+    .msg-note .del { width: 25px; height: 25px; font-size: 16px; }
+  }
 </style>
 
 </head>
@@ -2657,60 +2677,276 @@ function tapLike(img, openFn, likeEl) {
     t.addEventListener('click', () => setTab(t.dataset.tab)));
 })();
 
-/* ============ 留言板 ============ */
+/* ============ 留言板 ============
+   云端共享版：所有人写的纸条都能互相看到（后端 = 腾讯云开发 CloudBase PostgreSQL）。
+   写纸条的人可以在自己那张的右上角点小叉，把写错的那张删掉。
+   连不上云端时自动退回「本机模式」—— 纸条只存在这台设备的浏览器里，
+   页面不报错、不白屏，行为和以前完全一样。 */
 (function () {
-  const KEY = 'jimin-messages-v4';
-  const list = document.getElementById('msgList');
-  const form = document.getElementById('msgForm');
-  /* 不再预置示例小纸条：一开始是空的，写一条贴一条 */
-  const JUNK = [
-    '지민아 생일 축하해! 언제나 곁에 있을게 💜',
-    'Promise? Promise. 生日快乐，我们的月神大人。'
-  ];
-  let msgs;
-  try {
-    msgs = JSON.parse(localStorage.getItem(KEY));
-    if (!Array.isArray(msgs)) {
-      /* 从 v3 迁过来：把当年塞进去的两条示例剔掉，用户自己写的原样保留 */
-      const old = JSON.parse(localStorage.getItem('jimin-messages-v3')) || [];
-      msgs = Array.isArray(old) ? old.filter(m => m && JUNK.indexOf(m.text) === -1) : [];
-      try { localStorage.setItem(KEY, JSON.stringify(msgs)); } catch (e2) {}
+  const LOCAL_KEY = 'jimin-messages-v4';    /* 老版本存在本机的纸条 */
+  const MINE_KEY  = 'jimin-messages-mine';  /* 我在这台设备上写过的纸条 id */
+  const MOVED_KEY = 'jimin-messages-moved';
+  const LAST_KEY  = 'jimin-messages-last';
+  const ENV_ID    = 'jimin-board-d4g6tai3ode672bf0';
+  const TBL       = 'messages';
+  const SDK_SRC   = 'assets/cloudbase.min.js';
+  const GAP_MS    = 30000;   /* 同一台设备 30 秒只能发一条 */
+  const PAGE      = 200;     /* 一次最多取这么多张 */
+  const POLL_MS   = 45000;   /* 停在留言页时的自动刷新间隔 */
+
+  const listEl = document.getElementById('msgList');
+  const form   = document.getElementById('msgForm');
+  const nameEl = document.getElementById('msgName');
+  const textEl = document.getElementById('msgText');
+  const view   = document.getElementById('v-messages');
+
+  let db = null;      /* 不是 null 就说明云端可用 */
+  let myUid = null;   /* 我在云端的匿名身份：用来判断「哪张是我写的」 */
+
+  /* ---------- 小工具 ---------- */
+  const pad2 = x => String(x).padStart(2, '0');
+  function stamp(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) +
+           ' ' + pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+  }
+  function read(k, fb) {
+    try { const v = JSON.parse(localStorage.getItem(k)); return v === null ? fb : v; }
+    catch (e) { return fb; }
+  }
+  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  /* 纸条的歪斜角度由 id 算出来，定时刷新时不会乱跳 */
+  function tilt(id) {
+    let h = 7;
+    const s = String(id);
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+    return ((Math.abs(h) % 61) / 10 - 3).toFixed(1) + 'deg';
+  }
+
+  /* ---------- 渲染 ---------- */
+  function noteEl(m) {
+    const d = document.createElement('div');
+    d.className = 'msg-note';
+    d.style.setProperty('--r', tilt(m._id));
+    d.innerHTML = '<div class="who"></div><div class="txt"></div><div class="time"></div>';
+    d.querySelector('.who').textContent = m.name || '';
+    d.querySelector('.txt').textContent = m.text || '';
+    d.querySelector('.time').textContent = m.time || '';
+    if (m.mine) {                       /* 只有自己写的那张才有右上角的小叉 */
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'del';
+      b.setAttribute('aria-label', 'delete');
+      b.textContent = '\u00d7';
+      b.addEventListener('click', ev => { ev.preventDefault(); removeNote(m, b); });
+      d.appendChild(b);
     }
-  } catch (e) { msgs = []; }
-  if (!Array.isArray(msgs)) msgs = [];
-  function render() {
-    list.innerHTML = '';
-    if (!msgs.length) {                       /* 没有示例小纸条，写一条才贴一条 */
+    return d;
+  }
+  function render(notes) {
+    listEl.innerHTML = '';
+    if (!notes.length) {
       const e = document.createElement('div');
       e.className = 'msg-empty';
       e.textContent = '还没有小纸条 —— 写下第一张吧 ♡';
-      list.appendChild(e);
+      listEl.appendChild(e);
       return;
     }
-    msgs.slice().reverse().forEach(m => {
-      const d = document.createElement('div');
-      d.className = 'msg-note';
-      d.style.setProperty('--r', (Math.random() * 6 - 3).toFixed(1) + 'deg');
-      d.innerHTML = '<div class="who"></div><div class="txt"></div><div class="time"></div>';
-      d.querySelector('.who').textContent = m.name;
-      d.querySelector('.txt').textContent = m.text;
-      d.querySelector('.time').textContent = m.time || '';
-      list.appendChild(d);
-    });
+    notes.forEach(m => listEl.appendChild(noteEl(m)));
   }
-  form.addEventListener('submit', e => {
+
+  /* ---------- 本机模式：云端不可用时的兜底，也是首屏立刻画得出来的东西 ---------- */
+  function localNotes() {
+    const a = read(LOCAL_KEY, []);
+    return (Array.isArray(a) ? a : [])
+      .map((m, i) => ({ _id: 'L' + i, name: (m && m.name) || '', text: (m && m.text) || '',
+                        time: (m && m.time) || '', mine: true }))
+      .filter(m => m.text)
+      .reverse();                       /* 新的在上面，跟云端一致 */
+  }
+  function localPush(name, text) {
+    const a = read(LOCAL_KEY, []);
+    const arr = Array.isArray(a) ? a : [];
+    arr.push({ name: String(name).slice(0, 20), text: String(text).slice(0, 300), time: stamp(new Date()) });
+    write(LOCAL_KEY, arr);
+  }
+
+  /* ---------- 云端（CloudBase PostgreSQL） ---------- */
+  let sdkReady = null;
+  function loadSdk() {                 /* SDK 只在第一次进留言页时才拉，首页不受影响 */
+    if (sdkReady) return sdkReady;
+    sdkReady = new Promise((ok, no) => {
+      const s = document.createElement('script');
+      s.src = SDK_SRC;
+      s.onload = () => window.cloudbase ? ok(window.cloudbase) : no(new Error('cloudbase missing'));
+      s.onerror = () => no(new Error('sdk load failed'));
+      document.head.appendChild(s);
+    });
+    return sdkReady;
+  }
+
+  /* 匿名登录后把身份标识挖出来：各版本字段名不太一样，多试几个，取不到就返回 null。
+     注意 getUserInfo().uid 在匿名登录时是空字符串，所以它排最后、只当兜底。 */
+  async function pickUid(auth) {
+    const pool = [];
+    try { if (auth.currentUser) pool.push(auth.currentUser); } catch (e) {}
+    try { const st = await auth.getLoginState(); if (st) pool.push(st.user); } catch (e) {}
+    try { const u = await auth.getCurrentUser(); if (u) pool.push(u); } catch (e) {}
+    try {
+      const s = await auth.getSession();
+      const su = s && s.data && s.data.session && s.data.session.user;
+      if (su) pool.push(su);
+    } catch (e) {}
+    for (const c of pool) {
+      if (!c || typeof c !== 'object') continue;
+      const v = c.uid || c.sub || c.id;   /* 实测这三个字段是同一个值 */
+      if (v) return String(v);
+    }
+    return null;
+  }
+
+  async function connect() {
+    const sdk = await loadSdk();
+    const app = sdk.init({ env: ENV_ID });
+    const auth = app.auth();
+    let st = null;
+    try { st = await auth.hasLoginState(); } catch (e) {}
+    if (!st) { try { await auth.signInAnonymously(); } catch (e) {} }
+    myUid = await pickUid(auth);
+    return app.rdb();                  /* PostgreSQL 是 rdb()，不是 database() */
+  }
+
+  /* 我在这台设备上写过的纸条 id：万一 uid 取不到，至少保证小叉还长得出来 */
+  function mineIds() {
+    const a = read(MINE_KEY, []);
+    return Array.isArray(a) ? a.map(String) : [];
+  }
+  function rememberMine(id) {
+    const a = mineIds();
+    a.push(String(id));
+    write(MINE_KEY, a.slice(-PAGE));
+  }
+
+  async function fetchAll() {
+    const res = await db.from(TBL)
+      .select('id,name,text,time,user_id')
+      .order('created_at', { ascending: false })
+      .limit(PAGE);
+    if (res && res.error) throw new Error(res.error.message || 'read failed');
+    const mine = mineIds();
+    return ((res && res.data) || []).map(r => ({
+      _id: r.id, name: r.name, text: r.text, time: r.time,
+      mine: !!((myUid && String(r.user_id) === myUid) || mine.indexOf(String(r.id)) >= 0)
+    }));
+  }
+  async function push(name, text, time) {
+    /* user_id 交给数据库的 auth.uid() 自动填，前端不传 —— 从源头杜绝伪造归属 */
+    const res = await db.from(TBL).insert({
+      name: String(name).slice(0, 20),
+      text: String(text).slice(0, 300),
+      time: time || stamp(new Date())
+    }).select('id');
+    if (res && res.error) throw new Error(res.error.message || 'insert failed');
+    const row = (res && res.data && res.data[0]) || null;
+    if (row && row.id !== undefined && row.id !== null) rememberMine(row.id);
+    return row;
+  }
+  /* 删除：策略里已经限死「只能删 user_id = 自己」的行，所以这里不拼、也不能拼归属条件。
+     带上 select('id') 是为了看清楚到底删掉没有 —— 权限不够时返回空数组、不报错。 */
+  async function erase(id) {
+    const res = await db.from(TBL).delete().eq('id', id).select('id');
+    if (res && res.error) throw new Error(res.error.message || 'delete failed');
+    return (res && res.data) || [];
+  }
+  async function refresh() { try { render(await fetchAll()); } catch (e) {} }
+
+  /* ---------- 删掉自己写的那张 ---------- */
+  async function removeNote(m, btn) {
+    btn.disabled = true;
+    try {
+      if (db) {
+        await erase(m._id);
+        await refresh();      /* 以服务端为准：真删掉了就消失，没删掉就还留在那儿 */
+        return;
+      }
+      const a = read(LOCAL_KEY, []);
+      const arr = Array.isArray(a) ? a : [];
+      const i = Number(String(m._id).replace(/^L/, ''));
+      if (i >= 0 && i < arr.length) arr.splice(i, 1);
+      write(LOCAL_KEY, arr);
+      render(localNotes());
+    } catch (e) {
+      btn.disabled = false;    /* 删不掉就把叉恢复成可点，别变成死按钮 */
+    }
+  }
+
+  /* ---------- 连云端：第一次进留言页时做；失败了下一次进来会重试 ---------- */
+  let booting = false;
+  async function boot() {
+    if (db || booting) return;
+    booting = true;
+    try {
+      db = await connect();
+      await fetchAll();          /* 真读一次才算数：连得上才留在云端模式 */
+      /* 以前写在本机、还没上云的纸条，一次性搬上去（只搬一次） */
+      if (!read(MOVED_KEY, false)) {
+        const old = read(LOCAL_KEY, []);
+        const arr = Array.isArray(old) ? old.filter(m => m && m.text) : [];
+        for (const m of arr) { try { await push(m.name, m.text, m.time); } catch (e) {} }
+        write(MOVED_KEY, true);
+        write(LOCAL_KEY, []);
+      }
+      await refresh();
+    } catch (e) {
+      db = null;                 /* 连不上就老实退回本机模式 */
+      render(localNotes());
+    } finally { booting = false; }
+  }
+
+  /* ---------- 提交 ---------- */
+  form.addEventListener('submit', async e => {
     e.preventDefault();
-    const name = document.getElementById('msgName').value.trim();
-    const text = document.getElementById('msgText').value.trim();
+    const name = (nameEl.value || '').trim();
+    const text = (textEl.value || '').trim();
     if (!name || !text) return;
-    const now = new Date(), pad = x => String(x).padStart(2, '0');
-    msgs.push({ name: name.slice(0, 20), text: text.slice(0, 300),
-      time: now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate()) +
-            ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes()) });
-    try { localStorage.setItem(KEY, JSON.stringify(msgs)); } catch (err) {}
-    form.reset(); render();
+    if (Date.now() - (Number(read(LAST_KEY, 0)) || 0) < GAP_MS) return;   /* 防刷 */
+    write(LAST_KEY, Date.now());
+    form.reset();
+
+    if (!db) { localPush(name, text); render(localNotes()); return; }
+
+    /* 先乐观地贴上去；落库成功再以服务端数据为准 */
+    let before = [];
+    try { before = await fetchAll(); } catch (e) {}
+    render([{ _id: 'tmp' + Date.now(), name: name, text: text, time: stamp(new Date()), mine: true }].concat(before));
+    try {
+      await push(name, text);
+      await refresh();
+    } catch (err) {
+      /* 云端这一步不可用：直接退回本机模式，并让刚写的这张留在页面上，
+         而不是把它撤掉、让人以为白写了 */
+      db = null;
+      localPush(name, text);
+      render(localNotes());
+    }
   });
-  render();
+
+  /* ---------- 进留言页就连云端；停在页面上时定时刷新，能看见别人刚写的 ---------- */
+  function onView(enter) { if (enter) { boot(); if (db) refresh(); } }
+  if (view) {
+    let was = view.classList.contains('on');
+    if (was) onView(true);
+    new MutationObserver(() => {
+      const now = view.classList.contains('on');
+      if (now !== was) { was = now; onView(now); }
+    }).observe(view, { attributes: true, attributeFilter: ['class'] });
+  }
+  setInterval(() => {
+    if (!db || document.hidden) return;
+    if (view && !view.classList.contains('on')) return;
+    refresh();
+  }, POLL_MS);
+
+  render(localNotes());
 })();
 </script>
 </body>
