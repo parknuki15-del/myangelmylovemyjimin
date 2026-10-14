@@ -1271,6 +1271,15 @@
   .msg-note .pub:active { transform: scale(.94); }
   .msg-note .pub[disabled] { opacity: .35; cursor: default; }
   @media (max-width: 620px) { .msg-note .pub { font-size: 14px; } }
+
+  /* --- 留言页末尾的蛋糕：粉色 → 天空蓝 -----------------------------------
+     只换颜色，形状 / 尺寸 / 火苗动画全都不动。
+     用的是站内已有的雾霾蓝变量（--blue / --blue-pale），
+     跟四角蕾丝、便签胶带是同一个蓝，整体更统一。
+     ⚠️ 想改回粉色：把下面这三行删掉即可 —— 原来的粉色规则一个字都没动。 */
+  .wrap-center .cake .top    { background: var(--blue-pale); }
+  .wrap-center .cake .body   { background: repeating-linear-gradient(to right, var(--blue) 0 12px, var(--blue-pale) 12px 24px); }
+  .wrap-center .cake .candle { background: repeating-linear-gradient(to bottom, var(--blue) 0 6px, #fff 6px 12px); }
 </style>
 
 </head>
