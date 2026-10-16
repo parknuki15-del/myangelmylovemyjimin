@@ -903,7 +903,7 @@
   /* 像素小人是 1/4 缩略图，必须保持 NEAREST 放大；真人原图不能跟着被像素化，
      所以 image-rendering 只挂在 .lc-duo 上，不挂整格。 */
   .look-cell .lc-duo img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
-  /* 窄屏：96 张挤成 4 列，别让总览拖出 30 多行 */
+  /* 窄屏：100 张挤成 4 列，别让总览拖出 30 多行 */
   @media (max-width: 700px) {
     .look-strip { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 9px; }
   }
@@ -1373,7 +1373,7 @@
     </div>
   </div>
 
-  <!-- 往下滑 = 全部 96 套造型总览，点一下直接换上 -->
+  <!-- 往下滑 = 全部 100 套造型总览，点一下直接换上 -->
   <section class="look-section">
     <div class="look-head">
       <span class="look-title">All the Looks</span>
@@ -1466,8 +1466,8 @@
         <span class="sn-d">SAVED BY PARKNUKI</span>
       </div>
       <div class="side-stat" style="--r:-1.6deg">
-        <span><b>96</b>looks</span>
-        <span><b>22</b>cities</span>
+        <span><b>100</b>looks</span>
+        <span><b>23</b>cities</span>
         <span><b>1</b>&nbsp;person</span>
       </div>
     </aside>
