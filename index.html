@@ -1280,6 +1280,21 @@
   .wrap-center .cake .top    { background: var(--blue-pale); }
   .wrap-center .cake .body   { background: repeating-linear-gradient(to right, var(--blue) 0 12px, var(--blue-pale) 12px 24px); }
   .wrap-center .cake .candle { background: repeating-linear-gradient(to bottom, var(--blue) 0 6px, #fff 6px 12px); }
+
+  /* --- 造型总览格子：给高度加一层「不挑浏览器」的兜底 ---
+     症状：有些浏览器（Safari 尤其）里，100 个格子会全塌成一条，只剩下面那行日期小字，
+     真人照和像素小人一个都不显示。
+     原因：.lc-row 本身**没有任何高度**，全靠 aspect-ratio: 1 / 1.08 撑着。
+     实测把那句改成 auto，高度立刻从 124px 掉到 0 —— 就是这么脆。
+     而 .lc-row 是个 <span>（display:block）又是 .look-cell（flex column）的 item：
+     有的浏览器在解析 flex item 的交叉轴尺寸时，先算高度、后算宽度，宽度还没定下来
+     就套不出宽高比，于是高度是 0。
+     修法两条，都是老办法，不影响现有的好看程度：
+       1. 明写 width:100%，让浏览器不必等 flex 分配就知道宽度，宽高比立刻算得出来；
+       2. 再用 padding-top 百分比撑一层（108% 就是「宽 × 1.08」，所有浏览器都认）。
+     两个都生效时高度也是同一个值（108% 和 1/1.08 是等价的），所以**不会变高一截**。 */
+  .look-cell .lc-row { width: 100%; }
+  .look-cell .lc-row::before { content: ""; display: block; width: 100%; padding-top: 108%; }
 </style>
 
 </head>
