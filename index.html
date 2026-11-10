@@ -2827,13 +2827,14 @@ function tapLike(img, openFn, likeEl) {
      'open'     = 正常开放：所有人写的都能互相看到（要云开发环境活着）
      'readonly' = 暂停收新纸条：页面上只展示静态存档里的那批，一个请求都不发
 
-     现在设成 readonly —— 云开发环境 2026-11-13 到期，先停下收信，
-     但纸条一张不少：assets/messages-saved.js 是 2026-11-10 从云端导出的快照，
-     跟网站一起发布，后端没了也照样画得出来。
-
-     ⚠️ 以后想重新开放：把下面这行改回 'open' 即可（前提是环境已续费）。
-        存档文件不用删，留着当备份也不碍事。 */
-  const MODE = 'readonly';
+     现在设成 open —— 2026-11-13 23:59:59 会员到期，到期之前照常收信。
+     ⚠️ 到期当天（11-13）收摊前要做的事，一件都不能少：
+        1. node export_msg.mjs /tmp/messages-export.json   ← 再导一次（含最后的新纸条）
+        2. python build_save_messages.py /tmp/messages-export.json
+        3. 把这行改回 'readonly'                            ← 干净收摊，别留个能写但没人看的表格
+        4. commit + push（api.github.com 通，github.com 不通 → 用 push_via_api.py）
+     存档文件留着别删 —— 就算环境释放了，纸条照样显示。 */
+  const MODE = 'open';
 
   const SAVED    = window.MSG_SAVED || null;
   const ARCHIVE  = !!(SAVED && Array.isArray(SAVED.rows) && SAVED.rows.length);
@@ -2953,6 +2954,20 @@ function tapLike(img, openFn, likeEl) {
     const d = document.getElementById('msgSavedAt');
     if (n) n.textContent = String(SAVED.count || SAVED.rows.length);
     if (d) d.textContent = SAVED.savedAt || '';
+  }
+  /* 云端忽然连不上（比如到期停服）时的退路：存档 + 本机各拼一份。
+     两边可能重复（本机那张其实也上过云、也被抄进过存档），按「署名+内容+时间」去重。
+     这样别人写过的字还挂在墙上，而不是页面一空像全丢了。 */
+  function fallbackNotes() {
+    if (!ARCHIVE) return localNotes();
+    const seen = new Set();
+    const keep = m => {
+      const k = (m.name || '') + '|' + (m.text || '') + '|' + (m.time || '');
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    };
+    return localNotes().concat(archiveNotes()).filter(keep);
   }
 
   /* ---------- 云端（CloudBase PostgreSQL） ---------- */
@@ -3130,9 +3145,9 @@ function tapLike(img, openFn, likeEl) {
       }
       await refresh();
     } catch (e) {
-      db = null;                 /* 连不上就老实退回本机模式 */
+      db = null;                 /* 连不上就退回「存档 + 本机」—— 有存档就不会一片空 */
       syncHideToggle();          /* 本机模式下无所谓公开/隐藏，把勾选项收起来 */
-      render(localNotes());
+      render(fallbackNotes());
     } finally { booting = false; }
   }
 
@@ -3160,11 +3175,11 @@ function tapLike(img, openFn, likeEl) {
       await push(name, text, undefined, keep);
       await refresh();
     } catch (err) {
-      /* 云端这一步不可用：直接退回本机模式，并让刚写的这张留在页面上，
+      /* 云端这一步不可用：退回「存档 + 本机」，并让刚写的这张留在页面上，
          而不是把它撤掉、让人以为白写了 */
       db = null;
       localPush(name, text);
-      render(localNotes());
+      render(fallbackNotes());
     }
   });
 
