@@ -1295,6 +1295,48 @@
      两个都生效时高度也是同一个值（108% 和 1/1.08 是等价的），所以**不会变高一截**。 */
   .look-cell .lc-row { width: 100%; }
   .look-cell .lc-row::before { content: ""; display: block; width: 100%; padding-top: 108%; }
+
+  /* --- 留言板：暂停收信后的「只读」形态 ----------------------------------
+     云开发环境到期停服，收新纸条这件事先停一停，但已经写下的字要留着。
+     做法：脚本给 #v-messages 加一个 .closed 类 ——
+       · 写纸条的表格整块收起来
+       · 露一张奶油色的小卡片说明「暂时关了，但都留着」
+       · 下面的纸条照常渲染，只是没有小叉（存档不给删）
+     ⚠️ 想重新开放：把留言板 IIFE 顶部的 MODE 改回 'open' 就行，
+        这一段 CSS 留着不碍事（没有 .closed 类就不生效）。 */
+  .msg-closed { display: none; }
+  #v-messages.closed .msg-form { display: none; }
+  #v-messages.closed .msg-closed {
+    display: block; position: relative; text-align: center;
+    max-width: 560px; margin: 0 auto 44px; padding: 26px 30px 22px;
+    background: var(--cream); border: 1.5px dashed rgba(107,68,54,.30);
+    border-radius: 14px; box-shadow: 0 12px 30px rgba(107,68,54,.08);
+    rotate: -.6deg;
+  }
+  /* 顶上那截胶带，跟纸条、便签用的是同一套雾霾蓝 */
+  #v-messages.closed .mc-pin {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+    width: 78px; height: 20px; background: rgba(205,226,242,.95);
+    border-left: 2px dashed #fff; border-right: 2px dashed #fff;
+  }
+  #v-messages.closed .mc-t {
+    font-family: "Caveat", cursive; font-size: 30px; line-height: 1.3;
+    color: var(--pink-ink); margin-bottom: 8px;
+  }
+  #v-messages.closed .mc-s {
+    font-size: 14.5px; line-height: 2; color: #8a6e63;
+  }
+  #v-messages.closed .mc-s b { color: var(--brown); font-size: 1.15em; }
+  #v-messages.closed .mc-x {
+    margin-top: 10px; font-family: "Gochi Hand", cursive;
+    font-size: 12px; letter-spacing: .03em; color: var(--ink-faint);
+  }
+  /* 表格收起来以后，纸条别顶到标题下面去 */
+  #v-messages.closed .msg-list { margin-top: 0; }
+  @media (max-width: 620px) {
+    #v-messages.closed .mc-t { font-size: 25px; }
+    #v-messages.closed .mc-s { font-size: 13.5px; line-height: 1.95; }
+  }
 </style>
 
 </head>
@@ -1560,6 +1602,14 @@
     <span class="vtitle">Letters for Jimin</span>
   </div>
   <div class="wrap-center">
+    <!-- 暂停收信时露出来的一块。默认 display:none，
+         只有脚本给 #v-messages 加上 .closed 才会出现（见下面留言板开关）。 -->
+    <div class="msg-closed" id="msgClosed">
+      <div class="mc-pin" aria-hidden="true"></div>
+      <p class="mc-t">letters are resting for now ♡</p>
+      <p class="mc-s">留言功能暂时关起来了 —— 但大家写过的 <b id="msgSavedCount">—</b> 张，都好好地留在这里。</p>
+      <p class="mc-x">saved on <span id="msgSavedAt">—</span></p>
+    </div>
     <form class="msg-form" id="msgForm">
       <input id="msgName" maxlength="20" placeholder="Your name" required>
       <textarea id="msgText" maxlength="300" placeholder="Write a birthday letter to Jimin…" required></textarea>
@@ -1601,6 +1651,9 @@
 <audio id="bgm" src="assets/promise.mp3" loop preload="auto"></audio>
 
 <script src="assets/data.js"></script>
+<!-- 留言的静态存档：云端停服后，这些字还能照样画出来。
+     由 build_save_messages.py 从云端导出生成，别手改。 -->
+<script src="assets/messages-saved.js"></script>
 <script>
 const DATA = window.SITE_DATA || { looks: [], counts: {}, stickers: [], frames: [], cities: [], legs: [] };
 
@@ -2770,6 +2823,22 @@ function tapLike(img, openFn, likeEl) {
   const PAGE      = 200;     /* 一次最多取这么多张 */
   const POLL_MS   = 45000;   /* 停在留言页时的自动刷新间隔 */
 
+  /* ================= 留言板开关（整个功能只改这一行）=================
+     'open'     = 正常开放：所有人写的都能互相看到（要云开发环境活着）
+     'readonly' = 暂停收新纸条：页面上只展示静态存档里的那批，一个请求都不发
+
+     现在设成 readonly —— 云开发环境 2026-11-13 到期，先停下收信，
+     但纸条一张不少：assets/messages-saved.js 是 2026-11-10 从云端导出的快照，
+     跟网站一起发布，后端没了也照样画得出来。
+
+     ⚠️ 以后想重新开放：把下面这行改回 'open' 即可（前提是环境已续费）。
+        存档文件不用删，留着当备份也不碍事。 */
+  const MODE = 'readonly';
+
+  const SAVED    = window.MSG_SAVED || null;
+  const ARCHIVE  = !!(SAVED && Array.isArray(SAVED.rows) && SAVED.rows.length);
+  const readOnly = (MODE === 'readonly') && ARCHIVE;
+
   const listEl = document.getElementById('msgList');
   const form   = document.getElementById('msgForm');
   const nameEl = document.getElementById('msgName');
@@ -2863,6 +2932,27 @@ function tapLike(img, openFn, likeEl) {
     const arr = Array.isArray(a) ? a : [];
     arr.push({ name: String(name).slice(0, 20), text: String(text).slice(0, 300), time: stamp(new Date()) });
     write(LOCAL_KEY, arr);
+  }
+
+  /* ---------- 静态存档：后端没了也把这些字画出来 ----------
+     存档是 build_save_messages.py 从云端导出、按时间正序排的；
+     这里倒过来，让最新的纸条出现在最上面，跟原来云端模式一致。
+     mine 一律 false —— 存档不给删，小叉也就不长出来。 */
+  function archiveNotes() {
+    return SAVED.rows
+      .map((r, i) => ({ _id: 'A' + i, name: r.name || '', text: r.text || '',
+                        time: r.time || '', mine: false, hidden: false }))
+      .filter(m => m.text)
+      .reverse();
+  }
+  /* 把「暂停收信」那张小卡片露出来，并把张数、存档时间填进去 */
+  function showClosed() {
+    if (!view) return;
+    view.classList.add('closed');
+    const n = document.getElementById('msgSavedCount');
+    const d = document.getElementById('msgSavedAt');
+    if (n) n.textContent = String(SAVED.count || SAVED.rows.length);
+    if (d) d.textContent = SAVED.savedAt || '';
   }
 
   /* ---------- 云端（CloudBase PostgreSQL） ---------- */
@@ -3022,6 +3112,7 @@ function tapLike(img, openFn, likeEl) {
   /* ---------- 连云端：第一次进留言页时做；失败了下一次进来会重试 ---------- */
   let booting = false;
   async function boot() {
+    if (readOnly) return;      /* 只读存档：一个请求都不往云端发（环境到期了，发也白发） */
     if (db || booting) return;
     booting = true;
     try {
@@ -3048,6 +3139,7 @@ function tapLike(img, openFn, likeEl) {
   /* ---------- 提交 ---------- */
   form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (readOnly) return;      /* 暂停收信期间（表格已收起），双保险 */
     const name = (nameEl.value || '').trim();
     const text = (textEl.value || '').trim();
     /* 必须在 form.reset() 之前读，否则勾选状态已经被清掉了 */
@@ -3077,7 +3169,7 @@ function tapLike(img, openFn, likeEl) {
   });
 
   /* ---------- 进留言页就连云端；停在页面上时定时刷新，能看见别人刚写的 ---------- */
-  function onView(enter) { if (enter) { boot(); if (db) refresh(); } }
+  function onView(enter) { if (readOnly) return; if (enter) { boot(); if (db) refresh(); } }
   if (view) {
     let was = view.classList.contains('on');
     if (was) onView(true);
@@ -3087,12 +3179,14 @@ function tapLike(img, openFn, likeEl) {
     }).observe(view, { attributes: true, attributeFilter: ['class'] });
   }
   setInterval(() => {
-    if (!db || document.hidden) return;
+    if (readOnly || !db || document.hidden) return;
     if (view && !view.classList.contains('on')) return;
     refresh();
   }, POLL_MS);
 
-  render(localNotes());
+  /* ---------- 首屏 ---------- */
+  if (readOnly) { showClosed(); render(archiveNotes()); }
+  else { render(localNotes()); }
 })();
 </script>
 </body>
