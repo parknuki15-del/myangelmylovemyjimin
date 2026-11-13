@@ -1607,7 +1607,6 @@
     <div class="msg-closed" id="msgClosed">
       <div class="mc-pin" aria-hidden="true"></div>
       <p class="mc-t">letters are resting for now ♡</p>
-      <p class="mc-s">留言功能暂时关起来了 —— 但大家写过的 <b id="msgSavedCount">—</b> 张，都好好地留在这里。</p>
       <p class="mc-x">saved on <span id="msgSavedAt">—</span></p>
     </div>
     <form class="msg-form" id="msgForm">
@@ -2834,7 +2833,7 @@ function tapLike(img, openFn, likeEl) {
         3. 把这行改回 'readonly'                            ← 干净收摊，别留个能写但没人看的表格
         4. commit + push（api.github.com 通，github.com 不通 → 用 push_via_api.py）
      存档文件留着别删 —— 就算环境释放了，纸条照样显示。 */
-  const MODE = 'readonly';
+  const MODE = 'open';
 
   const SAVED    = window.MSG_SAVED || null;
   const ARCHIVE  = !!(SAVED && Array.isArray(SAVED.rows) && SAVED.rows.length);
