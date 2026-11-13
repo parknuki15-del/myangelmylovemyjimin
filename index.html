@@ -2834,7 +2834,7 @@ function tapLike(img, openFn, likeEl) {
         3. 把这行改回 'readonly'                            ← 干净收摊，别留个能写但没人看的表格
         4. commit + push（api.github.com 通，github.com 不通 → 用 push_via_api.py）
      存档文件留着别删 —— 就算环境释放了，纸条照样显示。 */
-  const MODE = 'open';
+  const MODE = 'readonly';
 
   const SAVED    = window.MSG_SAVED || null;
   const ARCHIVE  = !!(SAVED && Array.isArray(SAVED.rows) && SAVED.rows.length);
